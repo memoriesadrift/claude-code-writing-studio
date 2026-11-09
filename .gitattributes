@@ -1,0 +1,12 @@
+# Unix line endings everywhere: Bash hooks break on CRLF, and pinned
+# SHA-256 hashes (e.g. .claude/csl/ieee.csl) must match byte for byte.
+* text=auto eol=lf
+
+*.pdf  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.zip  binary
+*.gz   binary
