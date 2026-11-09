@@ -1,0 +1,47 @@
+# Language pack: English (spec §4.5). Read by Claude, not by hooks: full YAML.
+#
+# Resolution for a prose file with tag <tag> (e.g. en-GB):
+#   base files here  →  variants/<tag>.md if it exists (wins where they differ)
+# Option values in force, highest first:
+#   work.yaml language_options → studio.yaml language.options
+#   → variants.<tag>.defaults → options.<name>.default
+
+schema_version: 1
+language: en
+name: English
+support: supported            # supported | user-defined
+
+files:
+  conventions: conventions.md # orthography authority, punctuation, typography, numbers, dates
+  grammar: grammar.md         # what grammar-editor checks and how
+  style: style.md             # line-editing notes
+  academic: academic.md       # academic conventions
+
+# Marks a quotation the author translated themselves (spec §6.1).
+translation_marker: "my translation"
+
+options:
+  oxford_comma:
+    description: "Serial comma before the final 'and'/'or' in a list of three or more."
+    values: [true, false]
+    default: false
+  ize_spelling:
+    description: "Oxford spelling: -ize (organize, realize) with British spelling otherwise. Only affects en-GB; en-US always uses -ize."
+    values: [true, false]
+    default: false
+
+variants:
+  en-GB:
+    overlay: variants/en-GB.md
+    csl_locale: en-GB         # /publish: Pandoc `lang` (also selects the LaTeX language)
+    defaults:
+      oxford_comma: false
+  en-US:
+    overlay: variants/en-US.md
+    csl_locale: en-US
+    defaults:
+      oxford_comma: true
+
+# Tag with no overlay (e.g. en-AU): base files and option defaults only;
+# CSL locale falls back to this.
+fallback_csl_locale: en-GB

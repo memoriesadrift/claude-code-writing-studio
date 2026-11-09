@@ -1,0 +1,44 @@
+# Language pack: {{language name}} (spec §4.5). Read by Claude, not by hooks.
+#
+# Scaffold for /language add <tag>. The skill copies this folder to
+# .claude/languages/<primary subtag>/, fills each {{placeholder}} from the
+# interview, and writes variants/<tag>.md for a regional tag.
+#
+# Resolution for a prose file with tag <tag>:
+#   base files here  →  variants/<tag>.md if it exists (wins where they differ)
+# Option values in force, highest first:
+#   work.yaml language_options → studio.yaml language.options
+#   → variants.<tag>.defaults → options.<name>.default
+
+schema_version: 1
+language: {{primary subtag, e.g. es}}
+name: {{language name, e.g. Español (Spanish)}}
+support: user-defined         # packs written by /language add are always user-defined
+
+files:
+  conventions: conventions.md
+  grammar: grammar.md
+  style: style.md
+  academic: academic.md
+
+# Interview: "How do you mark a quotation you translated yourself?"
+translation_marker: "{{e.g. traducción propia}}"
+
+# Interview: "Is there a choice your writing community makes either way that
+# you want fixed for this project?" (e.g. inclusive-language forms, serial
+# comma, quotation style). One entry per option; omit the block if none.
+options:
+  {{option_name}}:
+    description: "{{what it controls}}"
+    values: [{{value}}, {{value}}]
+    default: {{value}}
+
+# One entry per regional tag the author uses. Interview: "Which region's
+# standard do you write in?"
+variants:
+  {{tag, e.g. es-ES}}:
+    overlay: variants/{{tag}}.md
+    csl_locale: {{CSL locale for the tag, e.g. es-ES; see github.com/citation-style-language/locales}}
+    defaults: {}
+
+fallback_csl_locale: {{closest CSL locale}}
