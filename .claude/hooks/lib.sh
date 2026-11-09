@@ -6,8 +6,8 @@
 #
 # Hooks read only the flat "hook-read subset" of YAML (spec §10.1):
 #   studio.yaml   prose.level, prose.overrides (one `key: level` per line),
-#                 integrity.assessed_cap
-#   work.yaml     assessed, assessed_cap
+#                 integrity.assessed_cap, project.form, language.default
+#   work.yaml     assessed, assessed_cap, word_limit
 #   frontmatter   locked; source notes: status, archive.kind, archive.held
 
 WS_LEVELS="critic coach editor co-author ghostwriter"
@@ -152,9 +152,10 @@ ws_classify() {
 # ---------------------------------------------------------------- YAML subset
 
 # Load studio.yaml's hook-read keys. Sets WS_HAVE_STUDIO (0/1), WS_BASE_LEVEL,
-# WS_PROJECT_CAP, WS_OVERRIDES (newline-separated `key<TAB>level`).
+# WS_PROJECT_CAP, WS_OVERRIDES (newline-separated `key<TAB>level`), WS_FORM,
+# WS_LANG.
 ws_load_studio() {
-  WS_HAVE_STUDIO=0 WS_BASE_LEVEL="" WS_PROJECT_CAP="" WS_OVERRIDES=""
+  WS_HAVE_STUDIO=0 WS_BASE_LEVEL="" WS_PROJECT_CAP="" WS_OVERRIDES="" WS_FORM="" WS_LANG=""
   [ -f "$WS_ROOT/studio.yaml" ] || return 0
   WS_HAVE_STUDIO=1
   local t a b
@@ -162,6 +163,8 @@ ws_load_studio() {
     case $t in
       l) WS_BASE_LEVEL=$a ;;
       c) WS_PROJECT_CAP=$a ;;
+      f) WS_FORM=$a ;;
+      g) WS_LANG=$a ;;
       o) WS_OVERRIDES+="$a"$'\t'"$b"$'\n' ;;
     esac
   done < <(awk '
@@ -184,17 +187,19 @@ ws_load_studio() {
     top == "prose" && k == "level" { print "l\t" v; next }
     top == "prose" && k == "overrides" && v == "" { inov = 1; ovind = ind; next }
     top == "integrity" && k == "assessed_cap" { print "c\t" v; next }
+    top == "project" && k == "form" && ind <= 2 { print "f\t" v; next }
+    top == "language" && k == "default" && ind <= 2 { print "g\t" v; next }
   ' "$WS_ROOT/studio.yaml")
 }
 
-# Read works/<work>/work.yaml's `assessed` and `assessed_cap` into
-# WS_W_ASSESSED, WS_W_CAP.
+# Read works/<work>/work.yaml's `assessed`, `assessed_cap` and `word_limit`
+# into WS_W_ASSESSED, WS_W_CAP, WS_W_LIMIT.
 ws_load_work() {
-  WS_W_ASSESSED="" WS_W_CAP=""
+  WS_W_ASSESSED="" WS_W_CAP="" WS_W_LIMIT=""
   local f="$WS_ROOT/works/$1/work.yaml" t a
   [ -f "$f" ] || return 0
   while IFS=$'\t' read -r t a; do
-    case $t in a) WS_W_ASSESSED=$a ;; c) WS_W_CAP=$a ;; esac
+    case $t in a) WS_W_ASSESSED=$a ;; c) WS_W_CAP=$a ;; w) WS_W_LIMIT=$a ;; esac
   done < <(awk '
     function val(s) {
       sub(/[ \t]+#.*$/, "", s); sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s)
@@ -204,6 +209,7 @@ ws_load_work() {
     { sub(/\r$/, "") }
     /^assessed:/     { v = $0; sub(/^assessed:/, "", v); print "a\t" val(v) }
     /^assessed_cap:/ { v = $0; sub(/^assessed_cap:/, "", v); print "c\t" val(v) }
+    /^word_limit:/   { v = $0; sub(/^word_limit:/, "", v); print "w\t" val(v) }
   ' "$f")
 }
 

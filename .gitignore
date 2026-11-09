@@ -9,3 +9,6 @@ out/
 # Source archive: may hold copyrighted material; back it up yourself (spec §6.4).
 # compendium/archive.sha256 IS committed.
 compendium/archive/
+
+# Per-machine pointer to the non-fiction work in progress (session-start hook)
+session/current-work
