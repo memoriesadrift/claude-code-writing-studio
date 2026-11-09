@@ -1,0 +1,19 @@
+# Canon registry (fiction). Continuity is checked against this file, not
+# against Claude's recollection (spec §2, principle 4). Owned by the
+# continuity-editor; lines are proposed by Claude at "unit done" and written
+# only on the author's approval.
+#
+# entities:
+#   - id: char-mara-venn          # char- | place- | rule- | item- | org- | event-
+#     name: "Mara Venn"
+#     aliases: ["Mara", "the Venn girl"]   # every form the manuscript uses; grep targets
+#     bible: bible/characters/mara-venn.md
+#     facts:
+#       - key: eye_colour
+#         value: grey
+#         canon: established      # established | provisional | under-review
+#         source: ch01-arrival/sc02-the-dock   # unit that first states it, or a bible entry
+#         note: null
+
+schema_version: 1
+entities: []

@@ -1,0 +1,15 @@
+# Claim registry (non-fiction; spec §6.2). Citations are checked against this
+# file and the source notes, not against Claude's recollection.
+#
+# - id: C-014                      # C-<nnn>, never reused
+#   statement: "Public reason requires justification acceptable to all reasonable citizens."
+#   kind: source-claim             # source-claim | empirical | author-position
+#   support: [{cite: rawls1993, loc: "p. 137"}]
+#   against: [{cite: wall2002, loc: "pp. 385-9"}]   # contested claims list both sides
+#   status: contested              # established | contested | author-position
+#   used_in: [public-reason-essay/03-the-asymmetry]   # maintained by /draft and the citation check
+#
+# Every `cite:` must be a citekey with a source note; links are two-way: the
+# source note's Links → Claims lists this id.
+
+[]

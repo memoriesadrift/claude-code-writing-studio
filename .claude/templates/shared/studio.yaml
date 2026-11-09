@@ -1,0 +1,40 @@
+# Writing Studio project configuration (spec §4.1).
+# Keys are fixed identifiers in British English; there are no American aliases.
+# Lines marked (hook-read) must stay flat: `key: value` on one line, no {…}/[…].
+
+schema_version: 1
+
+project:
+  title: "{{title}}"
+  form: {{form}}                 # novel | short | nonfiction | screenplay (stub)
+  field: {{field}}               # nonfiction only; omit for fiction
+  stage: premise                 # fiction only: premise | draft | revision
+
+modes:
+  rigour: {{rigour}}             # minimal | standard | full
+  automation: collaborative      # collaborative | guided
+
+prose:
+  level: {{prose_level}}         # (hook-read) critic | coach | editor | co-author | ghostwriter
+  overrides:                     # (hook-read) one `<key>: <level>` per line; keys are paths under
+                                 # the prose root without extension (spec §5.1), e.g.
+                                 #   ch07-the-storm: co-author
+                                 #   public-reason-essay/05-conclusion: editor
+
+language:                        # spec §4.5
+  default: {{language}}          # BCP 47 tag of the prose
+  interface: {{interface}}       # language skills and agents use with the author
+  options: {}                    # validated against the language pack's pack.yaml
+
+style:
+  pov: {{pov}}                   # fiction only
+  tense: {{tense}}               # fiction only
+  register: {{register}}         # free text; interpreted by the language pack
+  citation_style: {{citation_style}}   # nonfiction only: CSL style id (default ieee)
+
+publish:                         # spec §8.4
+  template: null                 # project default LaTeX template; null → Pandoc's built-in
+  engine: tectonic               # tectonic | xelatex | lualatex | pdflatex
+
+integrity:                       # nonfiction only
+  assessed_cap: {{assessed_cap}} # (hook-read) default cap on an assessed work's prose level

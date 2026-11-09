@@ -1,1 +1,11 @@
 inspiration/**
+
+# Downloaded tools (jq, Pandoc, Tectonic) — see .claude/tools.yaml
+.claude/bin/
+
+# /publish output
+out/
+
+# Source archive: may hold copyrighted material; back it up yourself (spec §6.4).
+# compendium/archive.sha256 IS committed.
+compendium/archive/

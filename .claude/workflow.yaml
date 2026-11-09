@@ -1,0 +1,77 @@
+# Workflow phases (spec §11). Read by /status; nothing hard-blocks.
+#
+# Bible, outline, compendium and research are NOT phases: they run alongside
+# drafting at the depth `modes.rigour` sets (spec §4.3).
+#
+# Each phase names the artefact that proves it is complete:
+#   glob     — files to look at (relative to the project root; `<work>` is the
+#              work's slug)
+#   pattern  — optional extended regex that must match in the file
+#   require  — any (default): at least one file matches
+#              all: every file the glob finds matches
+#              all_blocks: every `### ` block in every file found contains a
+#                          matching line (scene cards, outline sections)
+# A phase is complete when its artefact is satisfied; /status reports the first
+# incomplete phase as "next" and says what is missing. The phase actually in
+# force is recorded separately (fiction: studio.yaml → project.stage;
+# non-fiction: work.yaml → status), so /status can point out a mismatch.
+
+schema_version: 1
+
+fiction:
+  stage_key: studio.yaml#project.stage
+  phases:
+    - id: premise
+      description: Brief written — logline, protagonist want/need, stakes, ending intent, comps
+      artefact:
+        glob: bible/brief.md
+        pattern: '^## Logline'
+      next_skill: /premise
+
+    - id: draft
+      description: Every scene card drafted
+      artefact:
+        glob: outline/chapters/*.md
+        pattern: '^status: (drafted|revised)'
+        require: all_blocks   # every scene card
+      next_skill: /draft
+
+    - id: revision
+      description: A milestone review of the whole manuscript approves it
+      artefact:
+        glob: reviews/milestone-*.md
+        pattern: '^\*\*Verdict:\*\* APPROVE'
+      next_skill: /review milestone
+
+nonfiction:
+  stage_key: works/<work>/work.yaml#status
+  phases:
+    - id: brief
+      description: Brief holds the assignment and a working research question or thesis
+      artefact:
+        glob: works/<work>/brief.md
+        pattern: '^## Research question'
+      next_skill: /new-work
+
+    - id: draft
+      description: Every outlined section drafted
+      artefact:
+        glob: works/<work>/outline.md
+        pattern: '^status: (drafted|revised)'
+        require: all_blocks   # every outlined section
+      next_skill: /draft
+
+    - id: revision
+      description: A developmental review of the whole work approves it
+      artefact:
+        glob: works/<work>/reviews/developmental-*.md
+        pattern: '^\*\*Verdict:\*\* APPROVE'
+      next_skill: /review developmental
+
+    - id: complete
+      description: Author has marked the work complete
+      artefact:
+        glob: works/<work>/work.yaml
+        pattern: '^status: complete'
+      on_enter: citation-check    # runs at every rigour level (spec §4.3); advisory
+      next_skill: null

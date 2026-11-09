@@ -1,0 +1,123 @@
+# Pinned external tools (spec §8.4, §10.1).
+#
+# Installers download `<release_url>/<file>` for the current platform, check it
+# against `sha256` (committed here, never fetched alongside the binary), and on
+# a match place `binary` in `.claude/bin/`. On a mismatch the download is
+# deleted. A copy already on PATH is used if it is this version or newer.
+#
+# Platform keys: <os>-<arch>, os ∈ windows | macos | linux, arch ∈ amd64 | arm64.
+# A platform set to `null` has no official build; the installer says so and
+# asks the author to install the tool themselves.
+#
+# `hash_source` records where each hash came from:
+#   release-sha256sum  — copied from the release's own sha256sum.txt
+#   github-digest      — the SHA-256 digest GitHub reports for the release asset
+#                        (the project publishes no checksum file)
+# Hashes were collected on 2026-11-09.
+
+schema_version: 1
+
+tools:
+  jq:
+    version: "1.8.2"
+    needed_by: hooks            # installed by /start
+    release_url: https://github.com/jqlang/jq/releases/download/jq-1.8.2
+    hash_source: release-sha256sum
+    archive: none               # the asset is the binary itself
+    platforms:
+      windows-amd64:
+        file: jq-windows-amd64.exe
+        sha256: a6fc67fedaf9128a3309a1e2ebb8b986aeccf70122ee46d2cb4849e423f0c627
+        binary: jq.exe
+      windows-arm64:
+        file: jq-windows-arm64.exe
+        sha256: 083b5377392bc57cf27052b6d20a2d927770683bca844632901ff38b4b7b0ac7
+        binary: jq.exe
+      macos-amd64:
+        file: jq-macos-amd64
+        sha256: e94b266e3c26690550006abe63152b782280f4e14374accdf04cbde844f00bc0
+        binary: jq
+      macos-arm64:
+        file: jq-macos-arm64
+        sha256: 2d75340ba57a4b4b4c8708a21c2dc8e958a48aaa8bba13b27f77f6e4c0eca07e
+        binary: jq
+      linux-amd64:
+        file: jq-linux-amd64
+        sha256: b1c22172dd303f3be49e935aa56aa48a8b7a46e0bc838b4997d3bb451495870f
+        binary: jq
+      linux-arm64:
+        file: jq-linux-arm64
+        sha256: 8b85c817833814ddca00a144c33705546355afccf0cf39b188f3cdb48b852309
+        binary: jq
+
+  pandoc:
+    version: "3.13"
+    needed_by: publish          # installed by /publish on first use
+    release_url: https://github.com/jgm/pandoc/releases/download/3.13
+    hash_source: github-digest
+    archive: extract            # unpack, then find `binary` anywhere inside
+    platforms:
+      windows-amd64:
+        file: pandoc-3.13-windows-x86_64.zip
+        sha256: 23e1f2e978a3df80db8bf65c9c59534f41a23140480cfb4f783a882ab7dc6a4e
+        binary: pandoc.exe
+      windows-arm64: null       # no official build; the amd64 build runs under emulation
+      macos-amd64:
+        file: pandoc-3.13-x86_64-macOS.zip
+        sha256: 1823278715aa405aaf21b59cde5dc789346aa8d4fc307467f9a9ee84162bedc5
+        binary: pandoc
+      macos-arm64:
+        file: pandoc-3.13-arm64-macOS.zip
+        sha256: f436d18bebbfb3ddd326597686dacab9fac5dc23bd060495020f35a28a43a7c3
+        binary: pandoc
+      linux-amd64:
+        file: pandoc-3.13-linux-amd64.tar.gz
+        sha256: 38aa33b325a2bc96a4c39409631212db55702f564250bcdbead180b3bf646389
+        binary: pandoc
+      linux-arm64:
+        file: pandoc-3.13-linux-arm64.tar.gz
+        sha256: 21e1d4ba09bd0b334590d204580fd4f6629b21be4ab6a32b26cc98982e9e0c68
+        binary: pandoc
+
+  tectonic:
+    version: "0.17.0"
+    needed_by: publish          # installed by /publish on first PDF
+    release_url: https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic%400.17.0
+    hash_source: github-digest
+    archive: extract
+    platforms:
+      windows-amd64:
+        file: tectonic-0.17.0-x86_64-pc-windows-msvc.zip
+        sha256: f61ce51f0b0ade1015b7de7ef368541c5424e9756ecbd0d7af97d6d48030845f
+        binary: tectonic.exe
+      windows-arm64: null       # no official build; the amd64 build runs under emulation
+      macos-amd64:
+        file: tectonic-0.17.0-x86_64-apple-darwin.tar.gz
+        sha256: 7c90ef5b6ddb1eb1937e4337add5237b79338e4b9676459fa91187d24d6cdf80
+        binary: tectonic
+      macos-arm64:
+        file: tectonic-0.17.0-aarch64-apple-darwin.tar.gz
+        sha256: a3f1cac7c5678f01661a92212f58480ae3b0634115d880dbc59e2953ded45667
+        binary: tectonic
+      linux-amd64:
+        file: tectonic-0.17.0-x86_64-unknown-linux-musl.tar.gz   # static; no glibc dependency
+        sha256: 8533d07f9ccbd7a65824b9e0459041bca34af1eb33daba48f59215593753a3b7
+        binary: tectonic
+      linux-arm64:
+        file: tectonic-0.17.0-aarch64-unknown-linux-musl.tar.gz
+        sha256: b10954a95404f3ab2328d2fa59a5ebab8e657f893fab096f98be8db7c0c979b8
+        binary: tectonic
+
+# Citation styles (§8.4). `ieee` is bundled in `.claude/csl/`. Any other style
+# id is fetched once by /publish, with approval, from this pinned commit:
+#   <raw_url>/<style-id>.csl   (dependent styles: <raw_url>/dependent/<style-id>.csl)
+# and kept in `.claude/csl/`.
+csl:
+  repository: https://github.com/citation-style-language/styles
+  commit: af0aea3fffd44fe798cce9285598d0d5cf62ef23   # 2026-11-06
+  raw_url: https://raw.githubusercontent.com/citation-style-language/styles/af0aea3fffd44fe798cce9285598d0d5cf62ef23
+  bundled:
+    ieee:
+      file: ieee.csl
+      sha256: b4c7619fc16c45a31e4cc3271eab94ffe83192d3b4c7fc729470a3b459448de3
+      licence: CC BY-SA 3.0

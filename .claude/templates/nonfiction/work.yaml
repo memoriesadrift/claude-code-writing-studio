@@ -1,0 +1,17 @@
+# Work configuration (spec §4.2). Prose levels are NOT set here — they live in
+# studio.yaml → prose (spec §5.1). Lines marked (hook-read) must stay flat.
+
+title: "{{title}}"
+kind: {{kind}}                   # essay | paper | article | dissertation | report | other
+module: {{module}}               # optional; null if none
+assessed: {{assessed}}           # (hook-read) true → integrity rules apply (spec §5.4)
+assessed_cap: null               # (hook-read) cap for this work; null → integrity.assessed_cap
+                                 # Raising a cap is a deliberate edit; no skill offers it.
+policy: "{{policy}}"             # the AI-use policy, verbatim as the author gave it
+word_limit: {{word_limit}}       # null if none
+word_count_excludes: [bibliography, footnotes]   # what doesn't count
+status: brief                    # brief | draft | revision | complete
+citation_style: null             # CSL style id; null → studio.yaml style.citation_style
+template: null                   # LaTeX template for /publish; null → template.tex here, then publish.template
+language: null                   # BCP 47 tag; null → studio.yaml language.default
+language_options: {}             # overrides studio.yaml language.options for this work
