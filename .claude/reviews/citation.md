@@ -33,6 +33,11 @@ This file's path and the target path(s) only. The agent reads:
 
 ## Prompt
 
+0. **Scan first:** `bash .claude/scripts/cite-scan.sh <work> [section...]`
+   lists every citation, resolves keys, reads note status, runs
+   `sha256sum -c` on the cited sources' archive lines and lists direct
+   quotations. Its `error:` lines are facts; steps 1–3 below are then
+   confirmation, and your reading goes into 4–7.
 1. **Resolution.** Grep the target for citekeys (`@key`, inside `[…]` or
    bare). Each must have a `library.bib` entry and a source note whose
    `citekey` equals the key.
