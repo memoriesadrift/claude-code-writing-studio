@@ -23,8 +23,9 @@ habits: the pack names the orthography authority, and its rules win.
    `gendering`) and list them in the report header.
 4. **No pack folder:** there is no grammar review for this language. Say so,
    point to `/language add <tag>`, and stop.
-5. `support: user-defined`: keep the template's reliability notice in the
-   header; Claude's grammar checking is less reliable in lower-resource
+5. `support: user-defined` (on the pack, or on the tag's own `variants`
+   entry, which `/language add` sets for an overlay it wrote): keep the
+   template's reliability notice in the header; Claude's grammar checking is less reliable in lower-resource
    languages, so phrase findings as prompts to check.
 
 ## Role

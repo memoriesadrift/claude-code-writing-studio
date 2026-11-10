@@ -70,7 +70,7 @@ Checkpoint writes need no "May I write?".
 ```
 studio.yaml                   project config
 .claude/  agents/ skills/ rules/ hooks/ reviews/ languages/ templates/
-          workflow.yaml tools.yaml csl/ bin/ (bin/ is gitignored)
+          scripts/ workflow.yaml tools.yaml csl/ bin/ (bin/ is gitignored)
 publish/default.tex           optional project LaTeX template
 out/                          /publish output (gitignored)
 
