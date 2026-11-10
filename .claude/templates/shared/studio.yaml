@@ -41,6 +41,7 @@ reviews:
 publish:                         # spec §8.4
   template: null                 # project default LaTeX template; null → Pandoc's built-in
   engine: tectonic               # tectonic | xelatex | lualatex | pdflatex
+  author: null                   # name on the title page; /publish asks once and writes it here
 
 integrity:                       # nonfiction only
   assessed_cap: {{assessed_cap}} # (hook-read) default cap on an assessed work's prose level

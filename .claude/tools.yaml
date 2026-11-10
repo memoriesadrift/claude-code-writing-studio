@@ -121,3 +121,10 @@ csl:
       file: ieee.csl
       sha256: b4c7619fc16c45a31e4cc3271eab94ffe83192d3b4c7fc729470a3b459448de3
       licence: CC BY-SA 3.0
+  # Styles fetched by /publish (scripts/csl-fetch.sh), recorded here with
+  # approval; publish.sh refuses a .csl whose hash does not match. Shape:
+  #   <style-id>:
+  #     file: <style-id>.csl
+  #     sha256: <hash>
+  #     parent: <id>        # dependent styles only; the parent is fetched too
+  fetched:
