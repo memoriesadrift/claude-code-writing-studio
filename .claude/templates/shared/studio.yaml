@@ -32,6 +32,12 @@ style:
   register: {{register}}         # free text; interpreted by the language pack
   citation_style: {{citation_style}}   # nonfiction only: CSL style id (default ieee)
 
+reviews:
+  beta_persona: null             # free text describing the beta-reader's persona;
+                                 # null → a keen reader of the genre (fiction) or an
+                                 # informed reader in project.field (non-fiction).
+                                 # `/review beta <target> marker` overrides it per run.
+
 publish:                         # spec §8.4
   template: null                 # project default LaTeX template; null → Pandoc's built-in
   engine: tectonic               # tectonic | xelatex | lualatex | pdflatex

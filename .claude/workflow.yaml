@@ -64,7 +64,7 @@ nonfiction:
     - id: revision
       description: A developmental review of the whole work approves it
       artefact:
-        glob: works/<work>/reviews/developmental-*.md
+        glob: works/<work>/reviews/developmental-<work>-*.md   # whole-work reports only; a section's report never completes the phase
         pattern: '^\*\*Verdict:\*\* APPROVE'
       next_skill: /review developmental
 
