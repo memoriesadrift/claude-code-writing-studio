@@ -21,9 +21,13 @@ from `critic` (Claude never writes a word of your prose) up to `ghostwriter`.
 
 ## Requirements
 
-- **Claude Code**
+- **Claude Code**, in a terminal or in the Code tab of the Claude desktop app.
 - **Bash.** On Windows, install [Git for Windows](https://git-scm.com/download/win),
-  which provides Git Bash. macOS and Linux have Bash already.
+  which provides Git Bash, even if you only use the desktop app (which asks
+  for Git only for worktrees). The studio's hooks and scripts run in Git Bash;
+  without it the hooks cannot run, and nothing enforces the prose level.
+  Restart the desktop app after installing Git: it reads `PATH` only at
+  launch. macOS and Linux have Bash already.
 - **jq.** You don't need to install it yourself: `/start` downloads a pinned,
   checksum-verified copy into `.claude/bin/` if none is on your `PATH`.
 - **Pandoc and Tectonic**, only for `/publish`. They are downloaded the same
@@ -33,7 +37,15 @@ from `critic` (Claude never writes a word of your prose) up to `ghostwriter`.
 ## Getting started
 
 1. Copy or clone this template, once per project.
-2. Open Claude Code at the project root.
+2. Open the project:
+   - **Desktop app:** in the Code tab, choose this folder with the project
+     folder control, and leave **Worktree** off. A worktree session works in
+     a separate checkout on its own branch: your writing stays there until
+     it is merged, and per-machine files (the work in progress, downloaded
+     tools, your source archive) are not copied into it.
+   - **Terminal:** run `claude` at the project root and accept the trust
+     prompt. The studio's read-only status scripts run without asking only
+     once the folder is trusted.
 3. Run `/start`. It meets you where you are — nothing yet, a seed, a clear
    idea, or material you have already written — and asks for the form, how
    much process you want (`rigour`), how much prose Claude may write
@@ -78,8 +90,9 @@ what Claude wrote, and drafts an AI-use statement for assessed work.
 | `ghostwriter` | whole chapters or works, unit by unit, each approved |
 
 The level can differ per chapter, unit, work or section. Assessed
-non-fiction is capped (`coach` by default). Hooks enforce this: at `critic`
-and `coach`, Claude cannot write to your prose files at all.
+non-fiction is capped (`coach` by default). Hooks enforce this in every
+permission mode, Auto and Bypass included: at `critic` and `coach`, Claude
+cannot write to your prose files at all.
 
 ## Principles
 

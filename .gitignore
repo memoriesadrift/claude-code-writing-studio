@@ -12,3 +12,6 @@ compendium/archive/
 
 # Per-machine pointer to the non-fiction work in progress (session-start hook)
 session/current-work
+
+# Desktop app worktree sessions (best left off; see README)
+.claude/worktrees/
