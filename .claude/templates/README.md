@@ -10,6 +10,10 @@ at a time (spec §2).
 | `shared/studio.yaml` | `/start` | `studio.yaml` |
 | `shared/checkpoint.md` | `/start`, `/new-work`, every milestone | `session/active.md` (fiction), `works/<work>/checkpoint.md` (non-fiction) |
 | `shared/review-report.md` | `/review`, `/continuity-check`, `/cite-check` | `reviews/` or `works/<work>/reviews/` |
+| `shared/ideas-session.md` | `/brainstorm`, `/cast`, `/world`, `/plot`, `/start` | `ideas/<YYYY-MM-DD>-<slug>.md` |
+| `shared/writer.md` | `/brainstorm` | `ideas/writer.md` |
+| `shared/ideas-parked.md` | `/start` | `ideas/parked.md` |
+| `shared/ideas-questions.md` | `/start` | `ideas/questions.md` |
 | `fiction/brief.md` | `/premise` | `bible/brief.md` |
 | `fiction/style-guide.md` | `/premise`, `/bible style-guide` | `bible/style-guide.md` |
 | `fiction/character.md` | `/bible character` | `bible/characters/<slug>.md` |

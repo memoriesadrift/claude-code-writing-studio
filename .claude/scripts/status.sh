@@ -117,6 +117,20 @@ case $FORM in
   novel|short|nonfiction|screenplay) ;;
   *) echo "error: studio.yaml: project.form \`$FORM\` is not novel, short, nonfiction or screenplay" ;;
 esac
+# modes.* (read by skills, not hooks): a missing key takes its default.
+modes_get() {
+  awk -v key="$1" '{ sub(/\r$/, "") } /^[^ \t#]/ { top = $0; sub(/:.*/, "", top) }
+    top == "modes" && $0 ~ "^[ \t]+" key ":" { v = $0; sub("^[ \t]+" key ":[ \t]*", "", v); sub(/[ \t]+#.*$/, "", v)
+      gsub(/^["\047]|["\047]$/, "", v); print v; exit }' studio.yaml
+}
+for m in "rigour minimal|standard|full standard" "automation collaborative|guided collaborative" "ideas questions|options|proposals options"; do
+  set -- $m
+  v=$(modes_get "$1")
+  if [ -z "$v" ]; then echo "note: studio.yaml: modes.$1 is not set; skills use \`$3\`"
+  else
+    case "|$2|" in *"|$v|"*) ;; *) echo "error: studio.yaml: modes.$1 \`$v\` is not one of ${2//|/, }" ;; esac
+  fi
+done
 
 awk "$AWK_LIB"'
   { sub(/\r$/, "") }

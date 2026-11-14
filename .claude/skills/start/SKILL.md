@@ -1,162 +1,230 @@
 ---
 name: start
-description: Set up a Writing Studio project - ask form, rigour, prose level and languages (and for non-fiction field, citation style and integrity cap), write studio.yaml, create the folders, install jq with approval, and name the one next step. Use when studio.yaml does not exist, or when the author types /start.
+description: "Onboarding - meets the author where they are (nothing yet, a seed, a clear idea, or existing material), sets up the project (form, languages, rigour, prose level, ideas mode; for non-fiction field, citation style and integrity cap), writes studio.yaml and the folders, installs jq with approval, shows the path ahead and hands off the first step. A returning author is sent to /next. Use when studio.yaml does not exist, the author is new, or types /start."
 disable-model-invocation: true
-allowed-tools: Read, Glob, Grep, Bash(bash .claude/scripts/install-tool.sh check *), Bash(bash .claude/scripts/status.sh*)
+allowed-tools: Read, Glob, Grep, AskUserQuestion, Bash(bash .claude/scripts/flow-check.sh*), Bash(bash .claude/scripts/install-tool.sh check *), Bash(bash .claude/scripts/status.sh*)
 ---
-# /start (spec §8.1, §4, §10.1)
+# /start (v1 §8.1; development-flow §4)
 
-Set the project up in one conversation. Follow the collaboration protocol in
-`CLAUDE.md`: question → options → decision → draft → approval.
+Orientation first, configuration second. Follow the collaboration protocol
+in `CLAUDE.md`: question → options → decision → draft → approval.
 
-## 0. Already set up?
+**Asking.** Fixed choices (where are you, form, rigour, prose level, ideas
+mode, confirming a write) use the question tool, so they can be tapped; put
+your recommendation first and mark it "(Recommended)". Free answers (title,
+the idea itself, a work's field) are plain text. A dismissed question is not
+an answer: ask again in plain text. Ask in the language the author writes
+in until the interface language is settled.
 
-If `studio.yaml` exists, **change nothing**. Run
-`bash .claude/scripts/status.sh`, give a short summary (form, prose level,
-language, errors, next phase) and point to `/status` for detail. Settings are
-changed by editing `studio.yaml` by hand (there is no `/settings` in v1).
-Stop here.
+**Hand off, never run.** `/start` ends by naming the first step; it never
+invokes it (development-flow principle 4).
 
-## 1. Look before asking
+## Phase 0 — returning author
 
-Glob the project root. If `manuscript/`, `bible/`, `outline/`, `works/` or
-`compendium/` already exist without `studio.yaml` (an older or hand-made
-project), say so: `/start` will only create what is missing and never
-overwrites a file. Suggest the form those folders imply.
+If `studio.yaml` exists, **ask nothing and change nothing.** Run `bash
+.claude/scripts/flow-check.sh` and say in two or three lines: form, prose
+level, ideas mode, and where the work stands (current phase; for drafting,
+`drafted: n of m`). Settings are changed by editing `studio.yaml` (no
+`/settings` in v1). End with: "Type `/next` to see the next step." Stop.
 
-## 2. Ask
+## Phase 1 — read the disk
 
-Ask in the language the author writes in until the interface language is
-settled. Ask a few questions at a time, each with options and a
-recommendation; never a form to fill in. Anything the author does not decide
-yet gets the default shown.
+Run `bash .claude/scripts/flow-check.sh disk` and keep its lines; do not show
+them yet. They check the author's answer in Phase 3:
 
-1. **Form:** `novel` · `short` (short fiction) · `nonfiction` (essays,
-   papers, a dissertation; one compendium shared by several works) ·
-   `screenplay`. Screenplay is a v1 stub: it behaves as `novel`, with no
-   screenplay templates or formatting rules; say so if chosen.
-2. **Title** of the project (for non-fiction, the umbrella: a degree, a
-   module, a research area).
-3. **Prose language** as a BCP 47 tag (`en-GB`, `en-US`, `de-DE`, `de-AT`,
-   `de-CH`, …): the region carries spelling (`en-GB` vs `en-US`, `de-CH`
-   without ß). **Interface language** (`language.interface`): the language
-   the studio talks in; default the prose language's primary subtag.
-4. **Rigour** — how much the studio tracks and checks *as you write*, never
-   what must exist before you start (§4.3). Default `standard`; suggest
-   `minimal` for short fiction. Show the three in one line each:
-   - `minimal`: checks on request; citation check when a work is marked
-     complete.
-   - `standard`: at "unit done" Claude proposes registry lines or claims,
-     runs the continuity or citation check, offers outline updates.
-   - `full`: as standard, plus full bible or compendium entries, every
-     departure noted, every factual assertion mapped to a source.
-5. **Prose level** — what Claude may put in prose files (`CLAUDE.md`, *The
-   prose ladder*). Show the five levels with one line each. Recommend
-   `critic` if the author is unsure: raising a level later is one line in
-   `studio.yaml`, and per-chapter or per-work overrides can loosen it where
-   wanted.
-6. **Fiction:** point of view (`first`, `close-third`, `omniscient`, …),
-   tense (`past`, `present`) and register (free text). Each may be "decide
-   later", which leaves it `null` for `/premise` and the style guide.
-7. **Non-fiction:**
-   - **Field** (free text, e.g. "Political philosophy").
-   - **Citation style:** a CSL style id; default `ieee` (bundled). Others
-     (`apa`, `harvard-cite-them-right`, `chicago-author-date`, `oscola`,
-     `modern-language-association`, …) are fetched by `/publish` on first
-     use. Per-work overrides go in `work.yaml`.
-   - **Integrity cap** (`integrity.assessed_cap`, §5.4): the highest prose
-     level Claude may use on an *assessed* work, whatever the overrides say.
-     Default `coach`. Each assessed work can set a stricter cap at
-     `/new-work`. This is a ceiling the author sets; never suggest raising it.
-   - **Register** (free text, e.g. "formal academic").
-
-`modes.automation` stays `collaborative` (asks at every decision); mention
-that `guided` exists (asks only at major decisions) and is a one-line edit.
-
-## 3. Write `studio.yaml`
-
-Fill `.claude/templates/shared/studio.yaml`: replace every `{{…}}`; for
-fiction drop `field`, `citation_style` and the `integrity` block (or leave
-them `null`); for non-fiction drop `stage`, `pov` and `tense`. Keep the
-comments. Keep hook-read lines flat (`key: value`, no `{…}`/`[…]`).
-`language.options` stays `{}` unless the author sets one: list the pack's
-options (`.claude/languages/<subtag>/pack.yaml` → `options`) with their
-defaults in one line and ask if any should change.
-
-Show the whole file, then ask **"May I write this to `studio.yaml`?"**
-
-## 4. Create the folders and seed files
-
-List every path, then ask once: **"May I create these?"** Create directories
-with `mkdir -p` and files with Write. Skip anything that already exists and
-say so.
-
-**Fiction (`novel`, `short`, `screenplay`):**
-
-| Path | From |
+| Line | Means |
 |---|---|
-| `bible/characters/`, `bible/world/places/`, `bible/world/rules/` | — |
-| `outline/chapters/`, `manuscript/`, `reviews/`, `session/` | — |
-| `bible/registry.yaml` | `.claude/templates/fiction/registry.yaml` |
-| `session/active.md` | `.claude/templates/shared/checkpoint.md`, scope "the book"; current task "Project set up"; next step `/premise`; no open questions |
+| `manuscript:`, `bible:`, `outline:` | an older or hand-made fiction project |
+| `works:`, `compendium:` | an older or hand-made non-fiction project |
+| `ideas:` | notes from an earlier start |
+| `loose:` | writing outside the studio's folders (a draft, notes, a `.docx`) |
 
-**Non-fiction:**
+If studio folders exist without `studio.yaml`, `/start` will only create what
+is missing and never overwrites a file; say so in Phase 3.
 
-| Path | From |
+## Phase 2 — where are you?
+
+If the author's first words already say what they are writing (a novel, a
+short story, an essay, a dissertation…), take the form from them; otherwise
+ask the form first: `novel` · `short` (short fiction) · `nonfiction` (essays,
+papers, a dissertation; one compendium shared by several works) ·
+`screenplay` (a v1 stub that behaves as `novel`, with no screenplay
+templates; say so if chosen).
+
+Then one question — "Where are you with it?":
+
+| | Fiction | Non-fiction |
+|---|---|---|
+| A | **Nothing yet** — I want to write, but have no idea | **A field or interest** — no topic yet |
+| B | **A seed** — an image, a character, a what-if, a genre | **A topic** — roughly what I want to write about |
+| C | **A clear idea** — I can say it in a sentence or two | **An assignment or a thesis** — I have the brief, or I know my argument |
+| D | **Existing material** — notes, a partial or finished draft | **Existing material** — a draft, notes, a bibliography |
+
+B and C: ask for the seed or idea in their own words, as plain text, and
+keep it verbatim.
+
+## Phase 3 — check against the disk
+
+If the answer contradicts Phase 1, say what was found once and ask again:
+
+- A, B or C with prose or `loose:` writing on disk: "I found 14 files in
+  `manuscript/` (or `draft.docx`); did you mean D?"
+- D with nothing on disk: "This looks fresh — would A, B or C fit better? Or
+  tell me where your material is."
+
+If no option fits, let the author describe their situation and route from it.
+
+## Phase 4 — configure
+
+A few questions at a time, each with options and a recommendation; anything
+not decided yet gets the default shown.
+
+1. **Title** of the project (for non-fiction, the umbrella: a degree, a
+   module, a research area). A working title is fine.
+2. **Prose language** as a BCP 47 tag (`en-GB`, `en-US`, `de-DE`, `de-AT`,
+   `de-CH`, …): the region carries spelling. **Interface language**
+   (`language.interface`): the language the studio talks in; default the
+   prose language's primary subtag.
+3. **Rigour** — how much the studio tracks and checks as you write, and which
+   development steps `/next` recommends; never what must exist before you
+   start (v1 §4.3). **Suggest it from the author's own words**, with the
+   reason:
+
+   | The author mentions | Suggest |
+   |---|---|
+   | short story, flash, competition, a first try, "just to see" | `minimal` |
+   | novel, novella, an essay or paper with a deadline | `standard` |
+   | series, epic, big world, many characters, dissertation, thesis | `full` |
+   | nothing that fits | `standard` |
+
+   One line each: `minimal` — brief, then write; checks on request.
+   `standard` — protagonist, opposition and a story spine recommended; checks
+   at "unit done". `full` — everything in standard, plus world, full cast,
+   style guide, all chapter cards and the advisory gates.
+4. **Prose level** — what Claude may put in prose files (`CLAUDE.md`, *The
+   prose ladder*); one line each for the five. Recommend `critic` if the
+   author is unsure: raising it later is one line in `studio.yaml`, and
+   per-chapter or per-work overrides can loosen it where wanted.
+5. **Ideas mode** (`modes.ideas`) — how much Claude contributes to creative
+   choices (premise, characters, plot; for non-fiction, angles and
+   questions), independent of the prose level:
+   - `options` (Recommended) — 2–3 distinct alternatives at each decision;
+     you choose, combine or ask for fresh ones.
+   - `questions` — Claude asks and reflects; every idea is yours.
+   - `proposals` — Claude may propose a complete answer (a whole cast, a
+     spine) with the main alternative; you approve or change it.
+6. **Fiction:** point of view, tense and register; each may be "decide
+   later" (`null`), settled in `/brainstorm` or the style guide.
+7. **Non-fiction:** field (free text); citation style (a CSL id, default
+   `ieee`; others are fetched by `/publish` on first use); integrity cap
+   (`integrity.assessed_cap`, default `coach`: the ceiling on Claude's prose
+   level for an assessed work — never suggest raising it); register.
+
+`modes.automation` stays `collaborative`; mention that `guided` exists and is
+a one-line edit.
+
+## Phase 5 — write
+
+Each write is shown first and asked for (question tool: `Yes — write it` /
+`Change something first`).
+
+1. **`studio.yaml`** from `.claude/templates/shared/studio.yaml`: replace
+   every `{{…}}`; fiction sets `project.stage: premise` and drops `field`,
+   `citation_style` and the `integrity` block (or leaves them `null`);
+   non-fiction drops `stage`, `pov` and `tense`. Keep the comments; keep
+   hook-read lines flat (`key: value`). `language.options` stays `{}` unless
+   the author sets one: list the pack's options
+   (`.claude/languages/<subtag>/pack.yaml` → `options`) with their defaults
+   in one line and ask if any should change.
+2. **Folders and seed files** — list every path, ask once: "May I create
+   these?" Create directories with `mkdir -p` and files with Write; skip
+   anything that exists and say so.
+
+   | Path | Form | From |
+   |---|---|---|
+   | `bible/characters/`, `bible/world/places/`, `bible/world/rules/`, `outline/chapters/`, `manuscript/`, `reviews/` | fiction | — |
+   | `bible/registry.yaml` | fiction | `.claude/templates/fiction/registry.yaml` |
+   | `session/active.md` | fiction | `.claude/templates/shared/checkpoint.md`: scope "the book"; current task "Project set up"; next step the Phase 7 hand-off |
+   | `compendium/sources/`, `concepts/`, `positions/`, `notes/`, `inbox/`, `archive/`; `works/` | non-fiction | — |
+   | `compendium/library.bib`, `compendium/claims.yaml` | non-fiction | `.claude/templates/nonfiction/` |
+   | `compendium/archive.sha256` | non-fiction | empty (`/source` adds a line per archived file) |
+   | `session/` | both | — |
+   | `ideas/parked.md`, `ideas/questions.md` | both | `.claude/templates/shared/ideas-parked.md`, `ideas-questions.md` |
+
+   Non-fiction: remind the author that `compendium/archive/` is gitignored
+   (it may hold copyrighted PDFs) and backing it up is their call; there is
+   no project checkpoint (each work gets one at `/new-work`).
+3. **C, "jump straight in" only** (Phase 7): offer to save the idea, verbatim,
+   to `ideas/<YYYY-MM-DD>-start.md` (template
+   `.claude/templates/shared/ideas-session.md`: skill `/start`, starting point
+   = their words labelled `(author)`, no options), so it is not lost.
+
+## Phase 6 — jq and the language pack
+
+**jq** — hooks need it (v1 §10.1). Run `bash .claude/scripts/install-tool.sh
+check jq`.
+
+- `status: usable` → say which copy (path, version).
+- `status: missing` → the guards (prose level, source verification) **deny**
+  writes until jq exists, and the observers (provenance log, session status)
+  switch off. Ask: **"May I download jq 1.8.2 for `<platform>` from
+  github.com/jqlang/jq into `.claude/bin/`? It is checked against the SHA-256
+  committed in `.claude/tools.yaml` and deleted if it does not match."** On
+  yes, run `bash .claude/scripts/install-tool.sh install jq` and report the
+  result lines. On no: how to install it themselves (`winget install
+  jqlang.jq`, `brew install jq`, their package manager); `/start` can be
+  re-run for the check.
+- Exit 3 (`no-official-build`) → the same manual instructions.
+- `checksum mismatch` → nothing was installed; do not retry automatically;
+  suggest checking the network (a proxy rewriting downloads).
+
+**Language pack** for `language.default` (v1 §4.5): no folder
+`.claude/languages/<subtag>/` → no grammar review yet, offer `/language add
+<tag>`; folder but no overlay for the tag → offer `/language add <tag>` for
+the region; `support: user-defined` → checks are less reliable.
+
+Run `bash .claude/scripts/status.sh`: any `error:` line means something
+`/start` wrote is wrong — fix it (with approval) before going on.
+
+## Phase 7 — the path, then hand off
+
+**The path card** — the author's route at the chosen rigour (development-flow
+§3), first step marked, each later step in one line with its command. For
+example, fiction at `standard`:
+
+```
+Your path (rigour: standard — recommended steps; everything else is optional)
+ → 1. /brainstorm   find the premise and write the brief
+   2. /cast         protagonist and opposition
+   3. /plot         the story spine
+   4. /draft        the write loop: /next names each scene, card first
+   5. /review milestone, then revise until it approves
+   6. /publish      optional: LaTeX or PDF
+ /next tells you where you are at any point. Drafting can start whenever
+ the brief exists.
+```
+
+`minimal`: brief → write loop → milestone review → publish. `full`: add the
+writer's brief, supporting cast, `/world`, the style guide, all chapter cards
+and the gates. Non-fiction: `/brainstorm` (A, B) → `/new-work` → reading
+plan (`/ask`, `/source`) → `/outline` → write loop → `/review developmental`
+→ mark complete and `/cite-check` → `/publish`.
+
+**The first step:**
+
+| Answer | First step |
 |---|---|
-| `compendium/sources/`, `compendium/concepts/`, `compendium/positions/`, `compendium/notes/`, `compendium/inbox/`, `compendium/archive/` | — |
-| `works/`, `session/` | — |
-| `compendium/library.bib` | `.claude/templates/nonfiction/library.bib` |
-| `compendium/claims.yaml` | `.claude/templates/nonfiction/claims.yaml` |
-| `compendium/archive.sha256` | empty file (`/source` adds one line per archived file) |
+| Fiction A | `/brainstorm open` |
+| Fiction B | `/brainstorm <their words>` |
+| Fiction C | ask: `Formalise it first` (Recommended; `/brainstorm <their idea>` goes straight to the brief) / `Jump straight in` (`/draft`; the brief can come later — offer the Phase 5 save) |
+| Fiction D | `/import <path>` (the material found in Phase 1 or named by the author) |
+| Non-fiction A | `/brainstorm open` |
+| Non-fiction B | `/brainstorm <their topic>` |
+| Non-fiction C | `/new-work` (an assignment or a thesis in hand) |
+| Non-fiction D | `/import <path>` |
 
-Remind the author that `compendium/archive/` is gitignored (it may hold
-copyrighted PDFs) and that backing it up is their call (§6.4).
-Non-fiction has no project checkpoint: each work gets its own at
-`/new-work`.
+Rewrite the checkpoint's next step to match (fiction `session/active.md`).
+Then exactly one line, and stop: "Type `<command>` to begin." Do not invoke
+it, even after a yes: the author types it.
 
-## 5. jq
-
-Hooks need `jq` (§10.1). Run `bash .claude/scripts/install-tool.sh check jq`.
-
-- `status: usable` → say which copy (path, version) and move on.
-- `status: missing` → explain: the guards (prose level, source verification)
-  **deny** writes until jq exists, and the observers (provenance log,
-  session status) switch off. Ask: **"May I download jq 1.8.2 for
-  `<platform>` from github.com/jqlang/jq into `.claude/bin/`? It is checked
-  against the SHA-256 committed in `.claude/tools.yaml` and deleted if it
-  does not match."** On yes, run
-  `bash .claude/scripts/install-tool.sh install jq` and report the result
-  lines. On no, tell them how to install it themselves (`winget install
-  jqlang.jq`, `brew install jq`, their package manager) and that `/start`
-  can be re-run for the check.
-- Exit status 3 (`no-official-build`) → the platform has no official
-  build; give the same manual instructions.
-- `checksum mismatch` → say nothing was installed, do not retry
-  automatically, and suggest checking the network (a proxy rewriting
-  downloads) before trying again.
-
-## 6. Language pack
-
-Resolve the pack for `language.default` (§4.5): folder
-`.claude/languages/<primary subtag>/`, overlay `variants/<tag>.md`.
-
-- No folder → there is no grammar review for this language yet. Offer
-  `/language add <tag>`.
-- Folder but no overlay for the tag → the base pack applies alone; offer
-  `/language add <tag>` to add a regional overlay.
-- `support: user-defined` → mention that checks are less reliable.
-
-## 7. Check and hand over
-
-Run `bash .claude/scripts/status.sh`. Any `error:` line means something
-`/start` wrote is wrong: fix it (with approval) before finishing.
-
-End with **one** next step:
-
-- Fiction: `/premise` — the brief (logline, want/need, stakes, ending
-  intent, comps) is the only thing needed before drafting.
-- Non-fiction: `/new-work` — paste the assignment and marking criteria; a
-  working research question is the only thing needed before drafting.
-
-`session/active.md` (fiction) is the checkpoint; no closeout is ever needed.
+If the author stopped before the end, say what was written and what was not.

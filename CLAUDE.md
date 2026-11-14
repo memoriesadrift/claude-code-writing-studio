@@ -8,6 +8,10 @@ interface language (`studio.yaml` → `language.interface`).
 If `studio.yaml` does not exist, the project has not been set up: say so and
 offer `/start`. Do nothing else first.
 
+> **First session?** Type `/start`. It meets you where you are — nothing yet,
+> a seed, a clear idea or existing material — and hands you the first step.
+> After that, `/next` always says what comes next.
+
 ## Collaboration protocol
 
 Every interaction follows **Question → Options → Decision → Draft → Approval**.
@@ -25,6 +29,13 @@ Every interaction follows **Question → Options → Decision → Draft → Appr
   offered for approval at "unit done". Never ask the author to fill in a form.
 - Helpers report facts; agents and the author judge. Review verdicts are
   advisory; nothing hard-blocks the author.
+- `modes.ideas` sets how much you contribute to creative choices (premise,
+  characters, plot; non-fiction angles and questions), independently of the
+  prose level: `questions` — ask and reflect, propose no content; `options`
+  (default) — 2–3 distinct alternatives, the author chooses; `proposals` — a
+  complete proposal with the main alternative. Creative direction is always
+  the author's, in every mode. Undecided ideas go to `ideas/` (rule
+  `.claude/rules/ideas.md`), labelled `(author)` or `(Claude)`.
 
 ## The prose ladder
 
@@ -75,8 +86,9 @@ publish/default.tex           optional project LaTeX template
 out/                          /publish output (gitignored)
 
 fiction:      bible/  outline/  manuscript/<chapter>/<unit>.md  reviews/
-              session/active.md  session/provenance.jsonl
-non-fiction:  compendium/  works/<work>/  session/provenance.jsonl
+              session/active.md  session/progress.yaml  session/provenance.jsonl
+non-fiction:  compendium/  works/<work>/ (+ progress.yaml)  session/provenance.jsonl
+both:         ideas/  (writer's brief, brainstorm sessions, parked ideas, open questions)
 ```
 
 ## Non-fiction: no invented sources

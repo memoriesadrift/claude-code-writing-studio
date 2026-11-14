@@ -13,6 +13,9 @@ project:
 modes:
   rigour: {{rigour}}             # minimal | standard | full
   automation: collaborative      # collaborative | guided
+  ideas: {{ideas}}               # questions | options | proposals — how much Claude contributes to
+                                 # creative choices (premise, characters, plot, angles); independent of
+                                 # the prose level. Default options: 2–3 alternatives, you choose.
 
 prose:
   level: {{prose_level}}         # (hook-read) critic | coach | editor | co-author | ghostwriter
