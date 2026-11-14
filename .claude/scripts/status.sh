@@ -58,15 +58,18 @@ if [ "${1:-}" = provenance ]; then
   ws_find_jq
   [ -n "$WS_JQ" ] || { echo "error: jq is not installed; run /start to install it"; exit 1; }
   # Group key: fiction prose → chapter; non-fiction prose → work/section;
-  # anything else → area (work-scoped where it has a work).
+  # anything else → area (work-scoped where it has a work). Imports (tool
+  # "import", development-flow §10) are the author's own text: listed one per
+  # file as "imported:", never added to Claude's counts.
   # Lines that are not JSON objects are counted and skipped, never fatal.
   "$WS_JQ" -rRs --arg want "$WANT" '
     split("\n") | map(sub("\r$"; "")) | map(select(length > 0))
     | (map(fromjson? // null) | map(select(type == "object"))) as $recs
     | (length - ($recs | length)) as $bad
     | (if $bad > 0 then "error: \($bad) line(s) of session/provenance.jsonl are not JSON records and were skipped" else empty end),
-      ($recs
-    | map(select($want == "" or .work == $want))
+      ($recs | map(select($want == "" or .work == $want))) as $sel
+    | ($sel
+    | map(select(.tool != "import"))
     | map(. + { unit: (
         .work as $w
         | if .area == "prose" and $w != null then (.file | sub("^works/[^/]+/sections/"; $w + "/") | sub("\\.md$"; ""))
@@ -80,7 +83,9 @@ if [ "${1:-}" = provenance ]; then
         capped: (map(select(.capped)) | length),
         files: (map(.file) | unique | length),
         first: (map(.ts) | min), last: (map(.ts) | max) }
-    | "unit: \(.unit)\tarea: \(.area)\twrites: \(.writes)\tfiles: \(.files)\tadded: \(.added)\tremoved: \(.removed)\tlevels: \(.levels)\tcapped: \(.capped)\tfirst: \(.first)\tlast: \(.last)")
+    | "unit: \(.unit)\tarea: \(.area)\twrites: \(.writes)\tfiles: \(.files)\tadded: \(.added)\tremoved: \(.removed)\tlevels: \(.levels)\tcapped: \(.capped)\tfirst: \(.first)\tlast: \(.last)"),
+      ($sel | map(select(.tool == "import"))[]
+    | "imported: \(.file)\tarea: \(.area)\twords: \(.imported_words // 0)\tsource: \(.source // "-")\tts: \(.ts)")
   ' "$P" | tr -d '\r'
   exit 0
 fi

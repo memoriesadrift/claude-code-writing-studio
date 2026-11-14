@@ -75,7 +75,11 @@ writes, characters added and removed, prose levels in force, and how many
 writes were under the integrity cap. Separate prose from everything else
 (bible, compendium, outline, reviews): only prose writes say anything about
 authorship. If the log does not exist, say that nothing has been recorded
-yet. The log records Claude's writes only, never the author's.
+yet. The log records Claude's writes, never the author's — except
+`imported:` lines: files `/import` copied verbatim from the author's own
+draft or notes (`tool: import`). List them separately as the author's text,
+with their word counts and source; they are never Claude's writing and never
+count towards what Claude added.
 
 ## `/status provenance statement <work>`
 
@@ -88,6 +92,9 @@ the author to edit, from:
 - `work.yaml` → `assessed`, `policy` (quote it verbatim), the cap in force;
 - compendium help (source notes and claims written by Claude, from the
   provenance log).
+- imported files (`imported:` lines): the author's own text, brought in
+  with `/import`; say so if it matters ("the draft was written by me before
+  I used the studio"), never as Claude's contribution.
 
 The draft **describes what happened**, in plain first-person sentences the
 author can sign (e.g. "I used Claude to give feedback on structure and to

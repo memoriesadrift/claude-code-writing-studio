@@ -8,9 +8,11 @@
 #   - at every level           → deny if the file is `locked: true`, if an Edit
 #                                touches an <!-- author --> fence, or if a Write
 #                                drops or alters a fenced passage
-# Bash/PowerShell: best effort. A command that writes and names a prose path is
-# denied if any named path resolves to critic/coach. A shell command can always
-# obscure its target; the rules and agent prompts carry the same contract.
+# Bash/PowerShell: `bash .claude/scripts/import-draft.sh …` alone on the line is
+# allowed at every level (/import). Otherwise best effort: a command that
+# writes and names a prose path is denied if any named path resolves to
+# critic/coach. A shell command can always obscure its target; the rules
+# and agent prompts carry the same contract.
 #
 # Before a Write (any studio file) or a replace-all Edit, records the old length
 # / occurrence count for provenance-log, which cannot see the old file.
@@ -128,6 +130,18 @@ fi
 
 # ================================================================ Bash / PowerShell
 if [ "$TOOL" = Bash ] || [ "$TOOL" = PowerShell ]; then
+  # /import (development-flow §10, §12): the import script copies the author's
+  # own text verbatim and checks it, so it is allowed at every level, but only
+  # as the whole command line, with nothing that could chain, redirect or
+  # substitute another command (; & | < > ` $ or a line break).
+  case $CMD in
+    "bash .claude/scripts/import-draft.sh "*)
+      case $CMD in
+        *[\;\&\|\<\>\`\$]*|*$'\n'*|*$'\r'*) ;;
+        *) exit 0 ;;
+      esac ;;
+  esac
+
   C=${CMD//\\//}
   case $C in *manuscript*|*works/*) ;; *) exit 0 ;; esac
 
