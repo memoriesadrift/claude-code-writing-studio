@@ -16,12 +16,12 @@ at a time (spec §2).
 | `shared/ideas-questions.md` | `/start` | `ideas/questions.md` |
 | `fiction/brief.md` | `/premise` | `bible/brief.md` |
 | `fiction/style-guide.md` | `/premise`, `/bible style-guide` | `bible/style-guide.md` |
-| `fiction/character.md` | `/bible character` | `bible/characters/<slug>.md` |
-| `fiction/place.md` | `/bible place` | `bible/world/places/<slug>.md` |
-| `fiction/world-rule.md` | `/bible rule` | `bible/world/rules/<slug>.md` |
+| `fiction/character.md` | `/cast`, `/bible character` | `bible/characters/<slug>.md` |
+| `fiction/place.md` | `/world`, `/bible place` | `bible/world/places/<slug>.md` |
+| `fiction/world-rule.md` | `/world`, `/bible rule` | `bible/world/rules/<slug>.md` |
 | `fiction/timeline.md` | `/bible timeline` | `bible/timeline.md` |
 | `fiction/registry.yaml` | `/start` | `bible/registry.yaml` |
-| `fiction/structure.md` | `/outline` | `outline/structure.md` |
+| `fiction/structure.md` | `/plot` (*Shape*, *Spine*, acts, promises), `/outline` (chapter list) | `outline/structure.md` |
 | `fiction/chapter-card.md` | `/outline` | `outline/chapters/<chapter>.md` |
 | `fiction/unit.md` | `/draft` | `manuscript/<chapter>/<unit>.md` |
 | `nonfiction/work.yaml` | `/new-work` | `works/<work>/work.yaml` |

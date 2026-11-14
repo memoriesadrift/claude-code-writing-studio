@@ -1,10 +1,10 @@
 ---
 name: outline
-description: "Plan structure. Fiction - outline/structure.md (shape, acts, chapter list, promises and payoffs), then one chapter card per chapter with a ### block per scene. Non-fiction - works/<work>/outline.md, one ### block per section with its claim, claim ids and citekeys. Also updates an existing outline and records departures. Use when the author wants to plan or re-plan structure, or types /outline."
+description: "Plan structure. Fiction - the chapter list in outline/structure.md (from the spine /plot wrote, or a minimal structure if /plot was skipped), then one chapter card per chapter with a ### block per scene. Non-fiction - works/<work>/outline.md, one ### block per section with its claim, claim ids and citekeys. Also updates an existing outline and records departures. Use when the author wants to plan or re-plan structure, or types /outline."
 argument-hint: "[work] (non-fiction) | [chapter] (fiction)"
-allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/status.sh*)
+allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/status.sh*), Bash(bash .claude/scripts/flow-check.sh*), Bash(bash .claude/scripts/flow-mark.sh *)
 ---
-# /outline (spec §8.1, §4.3, §11)
+# /outline (spec §8.1, §4.3, §11; development-flow §7.3, §11, §12)
 
 An outline is a planning document, not prose: Claude may write it at **any**
 prose level, but every file is written only after **"May I write this to
@@ -61,7 +61,26 @@ template; propose from what they have said and written, and let them correct.
 
 ### 1. `outline/structure.md`
 
-Template `.claude/templates/fiction/structure.md`.
+Template `.claude/templates/fiction/structure.md`. `/outline` owns the
+*Chapter list* (and the *Chapters:* line of each act) and the cards; `/plot`
+owns *Shape*, *Spine*, *Acts / movements* and *Promises and payoffs*.
+
+**With a spine** (`structure.md` has a filled *Spine* section, from
+`/plot`): do not ask about the shape again, and leave `/plot`'s sections
+byte for byte. Propose the chapter list from the spine: chapters in order
+that carry the beats from the opening image to the resolution, with the acts'
+turning points falling where the acts say, and the promises given room to
+be set up before they pay off. The chapter list's columns stay as they are
+(no beat column). Show it whole, with the act each chapter falls in; on
+approval, write the *Chapter list* and each act's *Chapters:* line ("May I
+write this to `outline/structure.md`?"). Then the critique, once, and the
+cards (§2). If a spine beat has no chapter, or the author's chapters
+reorder the beats, say so; changing the spine is `/plot`'s, on the author's
+word.
+
+**Without a spine** (`/plot` was skipped, or `structure.md` does not exist):
+the minimal structure below. The *Spine* section is written as its heading
+with `<!-- to decide: /plot -->`; say once that `/plot` can fill it later.
 
 1. **Shape.** Ask whether the author has a model in mind (three-act, Save the
    Cat, kishōtenketsu, a shape of their own, none). Offer two or three that
@@ -182,5 +201,19 @@ Rewrite the checkpoint (no "May I write?" needed): fiction
 next step, open questions; at most 25 lines; template
 `.claude/templates/shared/checkpoint.md`.
 
-When the outline is done for now, name **one** next step: usually
-`/draft <first planned unit>`.
+## Argument gate (non-fiction)
+
+Once the outline has its section blocks (development-flow §11): at `full`,
+run the gate as `/review gate argument <work>` does
+(`.claude/skills/review/SKILL.md`, *Gates*, which also records the
+`argument-gate` step) and show the verdict; at `standard`, offer it ("Type
+`/review gate argument <work>` any time"); at `minimal`, print `Argument
+gate skipped — minimal rigour.`
+
+## Hand off
+
+When the outline is done for now, run `bash .claude/scripts/flow-check.sh`
+(non-fiction: `… flow-check.sh <work>`) and name **one** next step: usually
+`/draft <first planned unit>`, or `/outline <next chapter>` when the next
+chapter to write has no card. End with exactly one line, "Type `<command>`
+to begin.", and never invoke it.

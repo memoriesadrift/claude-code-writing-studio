@@ -2,7 +2,7 @@
 name: bible
 description: "Fiction - create or extend a story-bible entry (character, place, world rule, timeline, style guide) from its template, and keep bible/registry.yaml in step - ids, aliases, facts with canon levels. Items, organisations and events are registry entries only. Never overwrites established canon. Use when the author wants to record or develop a character, place, rule or the timeline, or types /bible."
 argument-hint: "<character | place | rule | timeline | style | item | org | event> [name]"
-allowed-tools: Read, Glob, Grep, Bash(bash .claude/scripts/status.sh*)
+allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/status.sh*)
 ---
 # /bible <kind> [name] (spec §8.2, §2 principle 4, §4.3, §9)
 
@@ -60,7 +60,17 @@ fill from the manuscript or conversation get a proposal, the rest
 Then section by section, in the template's order, one round each (ask,
 propose, revise, approve, write). Kind-specific care:
 
-- **Character:** the *Voice profile*'s sample lines are **the author's own
+- **Character:** launch `character-lead` with the Agent tool (development-flow
+  §12) twice: **for proposals** when the skeleton is written ("Propose the
+  sections of `<path>` that can be drawn from `bible/brief.md`, the registry
+  and the manuscript, citing the unit for each fact; return text, do not
+  write files"), and **for an arc critique** once *Want and need* and *Arc*
+  are written ("Critique the arc in `<path>` against `bible/brief.md` and the
+  other entries in `bible/characters/`; three findings at most; do not write
+  files"). Show what it returns, labelled `(Claude)`; the author decides.
+  Developing a character from nothing (wound, lie, opposition, function) is
+  `/cast`'s job; offer it when the author has little to start from.
+  The *Voice profile*'s sample lines are **the author's own
   lines**, quoted from the manuscript with their location — never invented.
   If there are none yet, leave it to decide. *Secrets and mysteries* record
   the true answer even if the book never reveals it; if the author has not

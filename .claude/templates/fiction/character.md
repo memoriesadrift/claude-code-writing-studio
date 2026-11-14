@@ -18,7 +18,12 @@ updated: {{date}}
 - **Need:** {{need}}
 
 ## Arc
-{{start state → turning points → end state}}
+<!-- A flat arc (the character does not change; they change others) is a legitimate choice: say so here. -->
+- **Wound:** {{what happened before the story that still shapes them}}
+- **Lie they believe:** {{the false belief the wound left}}
+- **Truth:** {{what the story makes them face}}
+- **Path:** {{start state → turning points → end state}}
+- **Would never:** {{what they would never do — and whether the story makes them}}
 
 ## Voice profile
 - **Speech patterns:** {{vocabulary, rhythm, tics}}

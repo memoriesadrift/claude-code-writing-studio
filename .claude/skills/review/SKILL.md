@@ -158,8 +158,7 @@ exactly as above (§2–§5) with these differences:
 - **Name and target.** No name, or a gate for the other form: list the gates
   for this form. Non-fiction takes the work as target (default
   `session/current-work`); fiction gates have a fixed target. A gate file
-  that does not exist yet (`cast`, `spine`, `argument` before they are
-  built): say so and stop.
+  that does not exist: say so and stop.
 - **Rigour.** Gates are recommended at `full` and run on request at any
   rigour; say so if the author runs one below `full`, then run it.
 - **Prompt:** "Run the gate in `.claude/reviews/gates/<name>.md` on: `<target>`.
