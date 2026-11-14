@@ -2,7 +2,7 @@
 name: new-work
 description: "Non-fiction - create works/<work>/ from an assignment - the author pastes the brief and marking criteria (kept verbatim), sets kind, word limit, whether it is assessed and, if so, the AI-use policy and the integrity cap; Claude drafts a working research question or thesis as v1. Writes work.yaml, brief.md, an empty outline, the checkpoint and session/current-work. Use when the author starts a new essay, paper, dissertation or report, or types /new-work."
 argument-hint: "[slug]"
-allowed-tools: Read, Glob, Grep, Bash(bash .claude/scripts/status.sh*)
+allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/status.sh*), Bash(bash .claude/scripts/flow-check.sh*), Bash(bash .claude/scripts/flow-mark.sh *)
 ---
 # /new-work [slug] (spec §8.3, §4.2, §5.4, §6.5)
 
@@ -19,6 +19,12 @@ and a recommendation; every file only after **"May I write this to
 `<path>`?"**; `.claude/rules/works.md` applies.
 
 ## 1. Paste first
+
+**Coming from `/brainstorm`:** read the most recent `ideas/*.md` session
+file. If it records a chosen research question (and, perhaps, the assignment
+the author pasted there), say so and use them: the assignment and criteria
+still verbatim, the question offered as v1 in §4 instead of drafting new
+ones. Every other question below is still asked.
 
 Ask the author to paste the assignment and the marking criteria (as much as
 they have; "none" is fine for a work that is not assessed or has no
@@ -38,7 +44,8 @@ them as sub-commands or targets and a work with that name would be ambiguous:
 
 `provenance` · `statement` · `add` · `tex` · `pdf` · `done` · `summary` ·
 `marker` · `manuscript` · `continuity` · `citation` · `developmental` ·
-`line` · `grammar` · `beta` · `milestone`
+`line` · `grammar` · `beta` · `milestone` · `open` · `gate` · `write` ·
+`skip`
 
 Also refuse a slug that already exists under `works/` (offer to open that
 work instead).
@@ -77,9 +84,13 @@ Then a summary of the answers in one block, for the author to confirm.
 
 ## 4. Research question v1
 
-Draft a working research question **or** thesis from the assignment and what
-the author has said: two or three alternatives that differ in scope or angle,
-with a line each on what it commits the work to, and a recommendation. The
+If `/brainstorm` handed over a chosen question (§1), offer it as v1 and let
+the author confirm or reword it. Otherwise, draft a working research question
+**or** thesis from the assignment and what the author has said, following
+`studio.yaml` → `modes.ideas` (`questions`: draw it out with questions, propose
+none; `options`, the default: two or three alternatives that differ in scope or angle,
+with a line each on what it commits the work to, and a recommendation;
+`proposals`: one, with the main alternative). The
 author chooses or rewrites. It is `**v1** (<date>)`; it is expected to change
 (spec §6.5), and saying so here saves a worry later. *History* starts empty.
 
@@ -114,9 +125,15 @@ Then, without asking (session files):
 
 Run `bash .claude/scripts/status.sh <slug>`: any `error:` line about this
 work means something written is wrong; fix it (with approval) before
-finishing. Then name **one** next step:
+finishing.
 
-- `/outline <slug>` to plan the sections, or `/draft` to start writing — the
-  brief is all drafting needs at every rigour level.
-- If the compendium has no sources yet, mention `/source` as the way to add
-  them as the author reads.
+**Question gate** (development-flow §11): at `full`, run it as `/review gate
+question <slug>` does (`.claude/skills/review/SKILL.md`, *Gates*) and show
+the verdict; at `standard`, offer it ("Type `/review gate question <slug>` any
+time"); at `minimal`, print `Question gate skipped — minimal rigour.`
+
+Then run `bash .claude/scripts/flow-check.sh <slug>` and name **one** next
+step — usually the reading plan (`/ask`, then `/source` for each gap) at
+`standard` and `full`, `/outline <slug>` or `/draft` at `minimal`; the brief
+is all drafting needs at every rigour level. End with exactly one line,
+"Type `<command>` to begin.", and never invoke it.

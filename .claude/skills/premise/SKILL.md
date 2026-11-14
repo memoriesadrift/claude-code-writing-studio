@@ -1,7 +1,7 @@
 ---
 name: premise
-description: "Fiction - write or revise the brief, bible/brief.md - logline, protagonist want and need, stakes, ending intent, comparable titles, form and length. The brief is the only thing drafting needs. Use when a fiction project has no brief yet, when the author wants to pin down or rethink what the book is, or types /premise."
-allowed-tools: Read, Glob, Grep, Bash(bash .claude/scripts/status.sh*)
+description: "Fiction - revise the brief, bible/brief.md (logline, protagonist want and need, stakes, ending intent, comparable titles, form and length), or write it by direct interview when the author already knows the book. A first brief is usually written by /brainstorm. Use when the author wants to pin down or rethink what the book is, or types /premise."
+allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/status.sh*), Bash(bash .claude/scripts/flow-check.sh*), Bash(bash .claude/scripts/flow-mark.sh *)
 ---
 # /premise (spec §8.2, §4.3, §11)
 
@@ -38,7 +38,10 @@ the questions start from what the author has.
 
 - **Brief exists:** this is a revision. Show its sections in one line each and
   ask which to revisit; only those are rewritten (§4 below).
-- **No brief:** go on.
+- **No brief:** say that `/brainstorm` is the guided way to find the
+  premise and write the brief (premises to choose from, then the brief), and
+  ask whether to switch — the author types it. If they want this direct
+  interview instead (they already know the book), go on.
 
 ## 2. Skeleton
 
@@ -88,6 +91,10 @@ changed silently.
   later review. Optional.
 - Rewrite the checkpoint `session/active.md` (no "May I write?" needed):
   brief written; next step; open questions (anything left to decide).
-- Name **one** next step: `/outline` to plan structure, or `/draft` to start
-  writing straight away — at every rigour level, the brief is all drafting
-  needs.
+- Premise gate (development-flow §11): at `full`, run it as `/review gate
+  premise` does after a new or substantially revised brief; at `standard`,
+  offer it; at `minimal`, print `Premise gate skipped — minimal rigour.`
+- Run `bash .claude/scripts/flow-check.sh` and name **one** next step (usually
+  `/cast` at `standard` and `full`; `/draft` at `minimal` — at every rigour
+  level the brief is all drafting needs). End with exactly one line, "Type
+  `<command>` to begin.", and never invoke it.

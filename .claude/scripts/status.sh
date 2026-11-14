@@ -410,7 +410,7 @@ if [ "${#R[@]}" -gt 0 ]; then
       b = FILENAME; sub(/.*\//, "", b); sub(/\.md$/, "", b)
       dir = FILENAME; sub(/\/[^\/]*$/, "", dir)
       pass = ""; tgt = ""; date = ""; seq = 1
-      if (match(b, /^(continuity|citation|developmental|line|grammar|beta|milestone)-/)) {
+      if (match(b, /^(continuity|citation|developmental|line|grammar|beta|milestone|gate-premise|gate-cast|gate-spine|gate-question|gate-argument)-/)) {
         pass = substr(b, 1, RLENGTH - 1); r = substr(b, RLENGTH + 1)
         if (match(r, /-[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9](-[0-9]+)?$/)) {
           tgt = substr(r, 1, RSTART - 1); d = substr(r, RSTART + 1)

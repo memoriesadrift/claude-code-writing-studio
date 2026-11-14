@@ -1,8 +1,8 @@
 ---
 name: review
-description: "Run one review pass (continuity, citation, developmental, line, grammar, beta, milestone) on a unit, chapter, section, work or the manuscript - the pass's agent reads the pass file in its own context and returns a report with an advisory verdict, which is written to reviews/ (or works/<work>/reviews/) on approval. With no arguments, lists the passes and suggests one. Use when the author asks for feedback or a check, or types /review."
-argument-hint: "<pass> <target> [marker]"
-allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/status.sh*)
+description: "Run one review pass (continuity, citation, developmental, line, grammar, beta, milestone) on a unit, chapter, section, work or the manuscript - the pass's agent reads the pass file in its own context and returns a report with an advisory verdict, which is written to reviews/ (or works/<work>/reviews/) on approval. With no arguments, lists the passes and suggests one. /review gate <name> runs a development gate (premise, cast, spine, question, argument). Use when the author asks for feedback or a check, or types /review."
+argument-hint: "<pass> <target> [marker] | gate <name> [target]"
+allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/status.sh*), Bash(bash .claude/scripts/flow-mark.sh *)
 ---
 # /review <pass> <target> [marker] (spec §7.1, §4.3, §5.4)
 
@@ -86,8 +86,9 @@ prompt.
 ## 4. Check what came back
 
 - Exactly one verdict line at the start of a line: `**Verdict:** APPROVE`,
-  `**Verdict:** CONCERNS [n]` or `**Verdict:** REJECT [n]` (`workflow.yaml`
-  and `/status` match it). If it is missing or malformed, send the agent a
+  `**Verdict:** CONCERNS [n]` or `**Verdict:** REJECT [n]` — gates may also
+  return `**Verdict:** NOT ASSESSED` (`workflow.yaml` and `/status` match
+  them). If it is missing or malformed, send the agent a
   follow-up asking for the corrected line; never set a verdict yourself.
 - The header has the date, agent, language and pack with support level
   (user-defined: the reliability notice kept), prose level with any cap,
@@ -140,3 +141,37 @@ Offer, don't do:
 Rewrite the checkpoint (fiction `session/active.md`, non-fiction
 `works/<work>/checkpoint.md`; no "May I write?" needed) with the review and
 its verdict.
+
+## Gates — `/review gate <name> [target]` (development-flow §11)
+
+Development gates are review passes under `.claude/reviews/gates/`, run
+exactly as above (§2–§5) with these differences:
+
+| Gate | Form | Agent | Target | Report | Progress step |
+|---|---|---|---|---|---|
+| `premise` | fiction | `developmental-editor` | `bible/brief.md` | `reviews/gate-premise-brief-<date>.md` | `premise-gate` |
+| `cast` | fiction | `character-lead` | `bible/characters/` | `reviews/gate-cast-bible-<date>.md` | `cast-gate` |
+| `spine` | fiction | `structure-architect` | `outline/structure.md` | `reviews/gate-spine-structure-<date>.md` | `spine-gate` |
+| `question` | non-fiction | `developmental-editor` | `works/<work>/` | `works/<work>/reviews/gate-question-<work>-<date>.md` | `question-gate` |
+| `argument` | non-fiction | `structure-architect` | `works/<work>/outline.md` | `works/<work>/reviews/gate-argument-<work>-<date>.md` | `argument-gate` |
+
+- **Name and target.** No name, or a gate for the other form: list the gates
+  for this form. Non-fiction takes the work as target (default
+  `session/current-work`); fiction gates have a fixed target. A gate file
+  that does not exist yet (`cast`, `spine`, `argument` before they are
+  built): say so and stop.
+- **Rigour.** Gates are recommended at `full` and run on request at any
+  rigour; say so if the author runs one below `full`, then run it.
+- **Prompt:** "Run the gate in `.claude/reviews/gates/<name>.md` on: `<target>`.
+  Today's date: `<YYYY-MM-DD>`. Return the complete report as Markdown in the
+  shape of `.claude/templates/shared/review-report.md`. Do not write any
+  files."
+- **`NOT ASSESSED`** is not a pass and not a failure: name the missing input
+  the report gives and how to supply it (usually the skill that writes it).
+- **Recording the step.** Once the author has seen a verdict other than
+  `NOT ASSESSED` — whatever it is; gates are advisory — run `bash
+  .claude/scripts/flow-mark.sh <progress step> done [work]` and say so, whether
+  or not the report is written. On `CONCERNS` or `REJECT`, offer to revisit
+  what the report names; going on anyway is the author's call.
+- Then hand off as every skill does: the next step from `flow-check.sh`,
+  "Type `<command>` to begin."

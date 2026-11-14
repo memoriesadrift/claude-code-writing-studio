@@ -54,7 +54,7 @@ fiction:
             pattern: '^## Logline'
         - id: premise-gate
           name: Premise gate
-          skill: /brainstorm
+          skill: /review gate premise
           recommended: [full]
           artifact:
             done: premise-gate
@@ -92,7 +92,7 @@ fiction:
             glob: bible/style-guide.md
         - id: cast-gate
           name: Cast gate
-          skill: /cast
+          skill: /review gate cast
           recommended: [full]
           optional_for: [short]
           artifact:
@@ -110,7 +110,7 @@ fiction:
             done: spine
         - id: spine-gate
           name: Spine gate
-          skill: /plot
+          skill: /review gate spine
           recommended: [full]
           optional_for: [short]
           artifact:
@@ -176,7 +176,7 @@ nonfiction:
             pattern: '^## Research question'
         - id: question-gate
           name: Question gate
-          skill: /brainstorm
+          skill: /review gate question
           recommended: [full]
           artifact:
             done: question-gate
@@ -204,7 +204,7 @@ nonfiction:
             pattern: '^### '
         - id: argument-gate
           name: Argument gate
-          skill: /outline
+          skill: /review gate argument
           recommended: [full]
           artifact:
             done: argument-gate

@@ -13,7 +13,10 @@ paths:
   reliability notice. An assessed work shows its `policy` verbatim.
 - **Verdict line**, exactly `**Verdict:** APPROVE`, `**Verdict:** CONCERNS [n]`
   or `**Verdict:** REJECT [n]` at the start of a line: `workflow.yaml`
-  matches it. Verdicts are advisory; nothing hard-blocks the author.
+  matches it. Development gates (`.claude/reviews/gates/`, file names
+  `gate-<name>-<target>-<date>.md`) may also return
+  `**Verdict:** NOT ASSESSED` — a missing input, never a pass. Verdicts are
+  advisory; nothing hard-blocks the author.
 - **Findings at `critic` and `coach`** name the problem, its location and why
   it matters, never rewritten text. `coach` may add a short technique
   illustration, labelled as such. At `editor` and above, suggested edits are

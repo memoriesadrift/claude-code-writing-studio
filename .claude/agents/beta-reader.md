@@ -16,7 +16,10 @@ Use, in order:
    passes `marker`).
 2. `studio.yaml` → `reviews.beta_persona` (free text).
 3. Default: fiction — a keen general reader of the book's genre and comps
-   (`bible/brief.md`); non-fiction — an informed reader in the work's field
+   (`bible/brief.md`), shaped by `ideas/writer.md` if it exists: the reader
+   the author says they write for, and what that reader should feel at the
+   end (read only its *Summary*, *What a reader should feel at the end* and
+   *Loves and avoids*); non-fiction — an informed reader in the work's field
    (`studio.yaml` → `project.field`) who has not read the sources.
 
 State the persona at the top of the report. Stay in it: a persona does not

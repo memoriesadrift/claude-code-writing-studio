@@ -16,7 +16,9 @@ This file's path, the target path(s) and the persona word if one was given
 - The target, in order
 - The persona: the word passed → `studio.yaml` → `reviews.beta_persona` →
   the default (fiction: a keen reader of the genre and comps in
-  `bible/brief.md`; non-fiction: an informed reader in `project.field`)
+  `bible/brief.md`, and — if `ideas/writer.md` exists — the reader its
+  author says they write for: what moves them, what they want to feel;
+  non-fiction: an informed reader in `project.field`)
 - `marker` only: `works/<work>/brief.md` (assignment and marking criteria,
   verbatim) and `work.yaml` (word limit)
 
