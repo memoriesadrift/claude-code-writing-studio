@@ -2,7 +2,7 @@
 name: bible
 description: "Fiction - create or extend a story-bible entry (character, place, world rule, timeline, style guide) from its template, and keep bible/registry.yaml in step - ids, aliases, facts with canon levels. Items, organisations and events are registry entries only. Never overwrites established canon. Use when the author wants to record or develop a character, place, rule or the timeline, or types /bible."
 argument-hint: "<character | place | rule | timeline | style | item | org | event> [name]"
-allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/status.sh*)
+allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/status.sh*), Bash(bash .claude/scripts/flow-check.sh*)
 ---
 # /bible <kind> [name] (spec §8.2, §2 principle 4, §4.3, §9)
 
@@ -143,3 +143,7 @@ the entity in id order if the file is sorted, else at the end.
   this was part of the current task or decided something.
 - Offer `/continuity-check` when facts changed that the manuscript already
   states.
+- Run `bash .claude/scripts/flow-check.sh` and name **one** next step: the
+  continuity check if facts changed on the page, else the first step it
+  recommends (often `/cast`, `/plot` or the next unit). End with exactly one
+  line, "Type `<command>` to begin.", and never invoke it.

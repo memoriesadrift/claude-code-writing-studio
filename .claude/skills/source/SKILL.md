@@ -2,7 +2,7 @@
 name: source
 description: "Non-fiction - add or update a source - fetch metadata (DOI via doi.org, a URL, a file the author has), add a library.bib entry and a source note (status unverified), tell the author exactly what to archive, add checksum lines to compendium/archive.sha256 once the files are there, and help fill the note from the author's reading. Never marks a source verified. Use when the author has a new source or wants to work on a source note, or types /source."
 argument-hint: "<doi | url | file | citekey>"
-allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/archive-hash.sh *)
+allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/archive-hash.sh *), Bash(bash .claude/scripts/flow-check.sh*), Bash(bash .claude/scripts/flow-mark.sh *)
 ---
 # /source <doi | url | file | citekey> (spec §8.3, §6.1, §6.3, §6.4)
 
@@ -131,3 +131,16 @@ lines recorded (or what is still to save), `unverified` until the author
 marks it. If an outline or a draft already names this key, say that it cannot
 be cited in prose until verified. Rewrite the current work's checkpoint if
 this was part of its task (no "May I write?" needed).
+
+**Reading plan** (non-fiction, development-flow §8.1): run `bash
+.claude/scripts/flow-check.sh <work>`. If `current-phase: research` and the
+`reading-plan` step is not done or skipped, ask once per session **"Is the
+reading plan done for now?"** On yes, run `bash .claude/scripts/flow-mark.sh
+reading-plan done <work>`, say so, and hand off to the step `flow-check.sh`
+now recommends (usually `/outline <work>`) instead of the way back below.
+
+**Hand back** (a lookup skill: back to the work, not on to a new step): end
+with exactly one line, "Type `<command>` to begin.", naming the way back to
+the work in progress — the unit or step the checkpoint names (`/draft
+<key>`, `/outline <work>`), or `/source <citekey>` again when the author
+still has files to archive for this source. Never invoke it.

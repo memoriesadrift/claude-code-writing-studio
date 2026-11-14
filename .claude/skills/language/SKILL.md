@@ -122,3 +122,8 @@ Write, in order:
   lists the pack.
 - Tell the author which reviews can now run (`/review grammar`, `/review
   line`) and that pack files are plain Markdown they can edit at any time.
+- **Hand back** (back to the work, not on to a new step): end with exactly
+  one line, "Type `<command>` to begin.", naming the way back to the work in
+  progress — the unit or step the checkpoint names (`/draft <key>`,
+  `/outline <work>`), or `/review grammar <target>` when the pack was added
+  to review something in that language. Never invoke it.

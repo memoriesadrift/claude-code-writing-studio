@@ -108,3 +108,9 @@ request.
 Say what was written and which links were made on both sides. Rewrite the
 current work's checkpoint if this served its task (no "May I write?"
 needed).
+
+**Hand back** (a lookup skill: back to the work, not on to a new step): end
+with exactly one line, "Type `<command>` to begin.", naming the way back to
+the work in progress — the unit or step the checkpoint names (`/draft
+<key>`, `/outline <work>`), or `/source` when a claim just written cites a
+source that has no note yet. Never invoke it.

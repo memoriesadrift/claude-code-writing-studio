@@ -2,7 +2,7 @@
 name: review
 description: "Run one review pass (continuity, citation, developmental, line, grammar, beta, milestone) on a unit, chapter, section, work or the manuscript - the pass's agent reads the pass file in its own context and returns a report with an advisory verdict, which is written to reviews/ (or works/<work>/reviews/) on approval. With no arguments, lists the passes and suggests one. /review gate <name> runs a development gate (premise, cast, spine, question, argument). Use when the author asks for feedback or a check, or types /review."
 argument-hint: "<pass> <target> [marker] | gate <name> [target]"
-allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/status.sh*), Bash(bash .claude/scripts/flow-mark.sh *)
+allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/status.sh*), Bash(bash .claude/scripts/flow-check.sh*), Bash(bash .claude/scripts/flow-mark.sh *)
 ---
 # /review <pass> <target> [marker] (spec §7.1, §4.3, §5.4)
 
@@ -141,6 +141,19 @@ Offer, don't do:
 Rewrite the checkpoint (fiction `session/active.md`, non-fiction
 `works/<work>/checkpoint.md`; no "May I write?" needed) with the review and
 its verdict.
+
+Then name **one** next step:
+
+- `milestone` or whole-work `developmental` with `CONCERNS` or `REJECT`:
+  revising what the report names first — the unit it ranks highest, as
+  `/draft <key>` (at `critic`/`coach`: "Revise `<path>`, then type
+  `/draft <key> done`.") — then the same review again.
+- Any other pass: the next pass the report names, if any, else the step
+  `bash .claude/scripts/flow-check.sh` (non-fiction: `… <work>`)
+  recommends.
+
+End with exactly one line, "Type `<command>` to begin.", and never
+invoke it.
 
 ## Gates — `/review gate <name> [target]` (development-flow §11)
 

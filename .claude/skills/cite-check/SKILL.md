@@ -2,7 +2,7 @@
 name: cite-check
 description: "Non-fiction - grep-first citation check of a work (or some of its sections) - unresolved citekeys, unverified sources, missing or altered archive copies (sha256sum -c), quotations not found in the note or the archived copy, claims cited without support - then a report with an advisory verdict. Use when the author asks to check citations, marks a work complete, or types /cite-check."
 argument-hint: "[work] [section...]"
-allowed-tools: Read, Glob, Grep, Bash(bash .claude/scripts/cite-scan.sh*)
+allowed-tools: Read, Glob, Grep, Bash(bash .claude/scripts/cite-scan.sh*), Bash(bash .claude/scripts/flow-check.sh*)
 ---
 # /cite-check [work] [section...] (spec §8.3, §6.3, §6.4, §4.3)
 
@@ -124,3 +124,10 @@ Offer, don't do:
 
 Rewrite the work's checkpoint `works/<work>/checkpoint.md` (no "May I
 write?" needed) with the result and the next step.
+
+Then name **one** next step: `/source <citekey>` for the first unverified or
+unarchived source, the section to fix for an unresolved key or quotation,
+or, with nothing outstanding, the step `bash .claude/scripts/flow-check.sh
+<work>` recommends (usually `/publish <work>` once the work is complete).
+End with exactly one line, "Type `<command>` to begin.", and never invoke
+it.

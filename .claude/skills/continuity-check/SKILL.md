@@ -2,7 +2,7 @@
 name: continuity-check
 description: "Fiction - grep-first scan of the manuscript (or a chapter or unit) against bible/registry.yaml - where each entity is mentioned, registry problems (duplicate ids, shared aliases, missing bible entries, fact sources that don't exist), entities never mentioned - then a conflict report from reading only the passages the scan points to. Use when the author asks for a continuity check, or types /continuity-check."
 argument-hint: "[unit | chapter]"
-allowed-tools: Read, Glob, Grep, Bash(bash .claude/scripts/continuity-scan.sh*)
+allowed-tools: Read, Glob, Grep, Bash(bash .claude/scripts/continuity-scan.sh*), Bash(bash .claude/scripts/flow-check.sh*)
 ---
 # /continuity-check [scope] (spec §8.2, §2 principles 4 and 6)
 
@@ -127,3 +127,8 @@ Offer, don't do:
 
 Rewrite the checkpoint `session/active.md` (no "May I write?" needed) if the
 check changed what comes next.
+
+Then name **one** next step: `/review continuity <target>` if there are
+findings worth a full pass, a registry fix if one is waiting, else the step
+`bash .claude/scripts/flow-check.sh` recommends. End with exactly one line,
+"Type `<command>` to begin.", and never invoke it.

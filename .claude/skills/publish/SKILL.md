@@ -2,7 +2,7 @@
 name: publish
 description: "Convert the manuscript (fiction) or one work (non-fiction) from Markdown to LaTeX or PDF with Pandoc and Tectonic - units in outline order, citations rendered with citeproc in the work's CSL style and language, the work's or project's LaTeX template. Installs Pandoc and Tectonic and fetches CSL styles only with approval; never changes prose. Use when the author wants a .tex or PDF, or types /publish."
 argument-hint: "[work] <tex | pdf>"
-allowed-tools: Read, Glob, Grep, Bash(bash .claude/scripts/publish.sh *), Bash(bash .claude/scripts/install-tool.sh check *), Bash(bash .claude/scripts/cite-scan.sh*)
+allowed-tools: Read, Glob, Grep, Bash(bash .claude/scripts/publish.sh *), Bash(bash .claude/scripts/install-tool.sh check *), Bash(bash .claude/scripts/cite-scan.sh*), Bash(bash .claude/scripts/flow-check.sh*)
 ---
 # /publish [work] <tex | pdf> (spec §8.4)
 
@@ -153,3 +153,10 @@ PDF's bibliography has no heading unless the template or the last section
 supplies one (`# References` / `# Literatur` at the end of the last section,
 or `reference-section-title` in the template). Nothing is written outside
 `out/` except the approved changes above.
+
+Run `bash .claude/scripts/flow-check.sh` (non-fiction: `… <work>`). If a
+phase other than *finish* is still incomplete, name **one** next step from
+it — a draft is often published to read on paper mid-way — and end with
+exactly one line, "Type `<command>` to begin.", never invoking it. If every
+phase is complete, say that the book (or work) has finished the flow, with
+no hand-off line: the one ending without one.

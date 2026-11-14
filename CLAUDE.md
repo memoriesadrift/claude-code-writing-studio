@@ -37,6 +37,26 @@ Every interaction follows **Question → Options → Decision → Draft → Appr
   the author's, in every mode. Undecided ideas go to `ideas/` (rule
   `.claude/rules/ideas.md`), labelled `(author)` or `(Claude)`.
 
+## The flow
+
+Orient → Discover → Develop → Plan → Write loop → Revise → Finish. Rigour
+decides which steps are recommended (`.claude/workflow.yaml`); nothing is a
+gate, and drafting can start once a brief exists. `/next` names the one next
+step from `flow-check.sh`, the progress file and the checkpoint.
+
+| Phase | Fiction | Non-fiction |
+|---|---|---|
+| Orient | `/start` (`/import` for existing material) | `/start` (`/import`) |
+| Discover | `/brainstorm`, `/premise`; `/review gate premise` | `/brainstorm`, `/new-work`; `/review gate question` |
+| Develop / research | `/cast`, `/world`, `/bible`; `/review gate cast` | `/ask`, `/source`, `/compendium` |
+| Plan | `/plot`, `/outline`; `/review gate spine` | `/outline <work>`; `/review gate argument` |
+| Write loop | `/draft <unit>`, `/draft <unit> done` | the same |
+| Revise | `/review milestone`, `/continuity-check` | `/review developmental <work>`, `/cite-check` |
+| Finish | `/publish` | `/publish <work>` |
+
+**Hand-offs:** every skill ends by naming one next step as exactly one line,
+"Type `<command>` to begin.", and never invokes it: the author types it.
+
 ## The prose ladder
 
 Resolve the level for a prose file from `studio.yaml` → `prose` only

@@ -2,7 +2,7 @@
 name: draft
 description: "Work on one prose unit (a scene, or a section of a non-fiction work) at the prose level in force - critic/coach assemble a brief for the author, editor proposes numbered diffs, co-author drafts the unit for approval, ghostwriter drafts a chapter or work unit by unit. /draft <unit> done runs the unit-done checklist (registry lines or claims, outline status, word count, the checks rigour calls for, checkpoint). Use when the author wants to write, edit or finish a unit, or types /draft."
 argument-hint: "<unit | chapter | work> [done]"
-allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/status.sh*)
+allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/status.sh*), Bash(bash .claude/scripts/flow-check.sh*)
 ---
 # /draft (spec §8.1, §8.3, §5, §4.3)
 
@@ -257,8 +257,28 @@ one line as available on request, not done.
    done, the **next step** (usually the next unit), open questions, decisions
    made.
 
-End with one line: what was written, which checks ran and their verdicts,
-and the next step.
+## 5. Hand off (development-flow §8.4)
+
+After unit done, say in one line what was written and which checks ran,
+with their verdicts. Then run `bash .claude/scripts/flow-check.sh`
+(non-fiction: `… flow-check.sh <work>`) and name **one** next step from its
+`## write` block, worded by the level in force exactly as `/next` does
+(`.claude/skills/next/SKILL.md` §3, *The write loop*):
+
+- `next-unit: <key>` at `critic` or `coach`: "Write `<path>`, then type
+  `/draft <key> done`." (`/draft <key>` first gives the brief, if the
+  author wants one); at `editor` and above: "Type `/draft <key>` to
+  begin." (`ghostwriter`: the chapter or work).
+- `card-missing: <chapter>` at `standard` or `full`: `/outline <chapter>`
+  (cards just in time); at `minimal`, say the chapter has no card and name
+  `/draft` for its first unit.
+- Every unit drafted: fiction `/review milestone`, non-fiction `/review
+  developmental <work>`.
+
+After a step that was not unit done (a brief, a set of diffs, a drafted unit
+awaiting `done`), the next step is that unit's `/draft <key> done`.
+End with exactly one line, "Type `<command>` to begin." (or the `critic` /
+`coach` line above), and never invoke it.
 
 ## Never
 
