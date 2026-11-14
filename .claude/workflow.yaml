@@ -1,77 +1,257 @@
-# Workflow phases (spec §11). Read by /status; nothing hard-blocks.
+# Workflow catalogue (v1 §11; development-flow §3, §8.1). Read by
+# scripts/flow-check.sh, which /next, /status and /start use. Nothing
+# hard-blocks: "recommended" means /next names the step when it is the first
+# incomplete one; every other step is listed as available. Drafting is always
+# an alternative once a brief exists (development-flow principle 6).
 #
-# Bible, outline, compendium and research are NOT phases: they run alongside
-# drafting at the depth `modes.rigour` sets (spec §4.3).
+# Per form: phases in order, each with steps in order. Step fields:
+#   id           unique within the form; also the key in the progress file
+#   name         shown to the author
+#   skill        the command /next hands off to
+#   recommended  rigours at which the step is recommended: [minimal, standard, full]
+#   optional_for forms for which the step is never recommended: [short]
+#   repeatable   true: done once per chapter, character, section… (informational)
+#   note         shown when completion cannot be detected
+#   artifact     how flow-check.sh decides the step is done:
+#     glob       files (relative to the project root; <work> is the work slug)
+#     pattern    extended regex that must match in the file
+#     require    any (default) | all | all_blocks (every `### ` block has a matching line)
+#     min_count  at least this many files match (default 1)
+#     done       a step id recorded `done` in the progress file
+#     check      a computed check: cards-all (every listed chapter has a card);
+#                all-drafted (fiction: cards-all, and every scene block drafted or
+#                revised; non-fiction: every outline block drafted or revised)
+#     any_of     a list of the above; one match is enough
+#   A step whose artefact is only `done` is marked by the skill that does the
+#   work, or by /next when the author says it is finished.
 #
-# Each phase names the artefact that proves it is complete:
-#   glob     — files to look at (relative to the project root; `<work>` is the
-#              work's slug)
-#   pattern  — optional extended regex that must match in the file
-#   require  — any (default): at least one file matches
-#              all: every file the glob finds matches
-#              all_blocks: every `### ` block in every file found contains a
-#                          matching line (scene cards, outline sections)
-# A phase is complete when its artefact is satisfied; /status reports the first
-# incomplete phase as "next" and says what is missing. The phase actually in
-# force is recorded separately (fiction: studio.yaml → project.stage;
-# non-fiction: work.yaml → status), so /status can point out a mismatch.
+# Progress file (flow-mark.sh writes it; one `<step-id>: done|skipped <date>`
+# line per step): fiction session/progress.yaml; non-fiction
+# works/<work>/progress.yaml. `skipped` = the author chose to go on without
+# it; /next then lists it as available, not as next.
 
-schema_version: 1
+schema_version: 2
 
 fiction:
   stage_key: studio.yaml#project.stage
+  progress: session/progress.yaml
   phases:
     - id: premise
-      description: Brief written — logline, protagonist want/need, stakes, ending intent, comps
-      artefact:
-        glob: bible/brief.md
-        pattern: '^## Logline'
-      next_skill: /premise
+      name: Premise
+      steps:
+        - id: writer-brief
+          name: Writer's brief
+          skill: /brainstorm
+          recommended: [full]
+          artifact:
+            glob: ideas/writer.md
+        - id: brief
+          name: Brief
+          skill: /brainstorm
+          recommended: [minimal, standard, full]
+          artifact:
+            glob: bible/brief.md
+            pattern: '^## Logline'
+        - id: premise-gate
+          name: Premise gate
+          skill: /brainstorm
+          recommended: [full]
+          artifact:
+            done: premise-gate
+
+    - id: develop
+      name: Develop
+      steps:
+        - id: cast-core
+          name: Protagonist and opposition
+          skill: /cast
+          recommended: [standard, full]
+          optional_for: [short]
+          artifact:
+            done: cast-core
+        - id: cast-full
+          name: Supporting cast
+          skill: /cast
+          recommended: [full]
+          optional_for: [short]
+          artifact:
+            done: cast-full
+        - id: world
+          name: World
+          skill: /world
+          recommended: [full]
+          optional_for: [short]
+          artifact:
+            done: world
+        - id: style-guide
+          name: Style guide
+          skill: /bible style
+          recommended: [full]
+          optional_for: [short]
+          artifact:
+            glob: bible/style-guide.md
+        - id: cast-gate
+          name: Cast gate
+          skill: /cast
+          recommended: [full]
+          optional_for: [short]
+          artifact:
+            done: cast-gate
+
+    - id: plan
+      name: Plan
+      steps:
+        - id: spine
+          name: Story spine
+          skill: /plot
+          recommended: [standard, full]
+          optional_for: [short]
+          artifact:
+            done: spine
+        - id: spine-gate
+          name: Spine gate
+          skill: /plot
+          recommended: [full]
+          optional_for: [short]
+          artifact:
+            done: spine-gate
+        - id: cards
+          name: Chapter list and cards
+          skill: /outline
+          recommended: [full]       # standard: cards just in time, in the write loop
+          optional_for: [short]
+          repeatable: true
+          artifact:
+            check: cards-all
 
     - id: draft
-      description: Every scene card drafted
-      artefact:
-        glob: outline/chapters/*.md
-        pattern: '^status: (drafted|revised)'
-        require: all_blocks   # every scene card
-      next_skill: /draft
+      name: Draft
+      steps:
+        - id: draft
+          name: Write loop
+          skill: /draft
+          recommended: [minimal, standard, full]
+          repeatable: true
+          artifact:
+            any_of:
+              - check: all-drafted   # every listed chapter has a card, every scene drafted or revised
+              - done: draft          # no cards: the author says the draft is finished
 
     - id: revision
-      description: A milestone review of the whole manuscript approves it
-      artefact:
-        glob: reviews/milestone-*.md
-        pattern: '^\*\*Verdict:\*\* APPROVE'
-      next_skill: /review milestone
+      name: Revision
+      steps:
+        - id: revision
+          name: Milestone review approves
+          skill: /review milestone
+          recommended: [minimal, standard, full]
+          artifact:
+            any_of:
+              - glob: reviews/milestone-*.md
+                pattern: '^\*\*Verdict:\*\* APPROVE'
+              - done: revision       # the author decides it is done
+
+    - id: finish
+      name: Finish
+      steps:
+        - id: publish
+          name: Publish
+          skill: /publish
+          recommended: []
+          artifact:
+            glob: out/manuscript.pdf
 
 nonfiction:
   stage_key: works/<work>/work.yaml#status
+  progress: works/<work>/progress.yaml
   phases:
     - id: brief
-      description: Brief holds the assignment and a working research question or thesis
-      artefact:
-        glob: works/<work>/brief.md
-        pattern: '^## Research question'
-      next_skill: /new-work
+      name: Brief
+      steps:
+        - id: brief
+          name: Assignment and research question
+          skill: /new-work
+          recommended: [minimal, standard, full]
+          artifact:
+            glob: works/<work>/brief.md
+            pattern: '^## Research question'
+        - id: question-gate
+          name: Question gate
+          skill: /brainstorm
+          recommended: [full]
+          artifact:
+            done: question-gate
+
+    - id: research
+      name: Research
+      steps:
+        - id: reading-plan
+          name: Reading plan
+          skill: /ask
+          recommended: [standard, full]
+          note: the sources the research question needs, found with /ask and added with /source
+          artifact:
+            done: reading-plan
+
+    - id: plan
+      name: Plan
+      steps:
+        - id: outline
+          name: Argument outline
+          skill: /outline
+          recommended: [standard, full]
+          artifact:
+            glob: works/<work>/outline.md
+            pattern: '^### '
+        - id: argument-gate
+          name: Argument gate
+          skill: /outline
+          recommended: [full]
+          artifact:
+            done: argument-gate
 
     - id: draft
-      description: Every outlined section drafted
-      artefact:
-        glob: works/<work>/outline.md
-        pattern: '^status: (drafted|revised)'
-        require: all_blocks   # every outlined section
-      next_skill: /draft
+      name: Draft
+      steps:
+        - id: draft
+          name: Write loop
+          skill: /draft
+          recommended: [minimal, standard, full]
+          repeatable: true
+          artifact:
+            any_of:
+              - check: all-drafted   # every outlined section drafted or revised
+              - done: draft
 
     - id: revision
-      description: A developmental review of the whole work approves it
-      artefact:
-        glob: works/<work>/reviews/developmental-<work>-*.md   # whole-work reports only; a section's report never completes the phase
-        pattern: '^\*\*Verdict:\*\* APPROVE'
-      next_skill: /review developmental
+      name: Revision
+      steps:
+        - id: revision
+          name: Developmental review of the whole work approves
+          skill: /review developmental
+          recommended: [minimal, standard, full]
+          artifact:
+            any_of:
+              - glob: works/<work>/reviews/developmental-<work>-*.md   # whole-work reports only; a section's report never completes the phase
+                pattern: '^\*\*Verdict:\*\* APPROVE'
+              - done: revision
 
     - id: complete
-      description: Author has marked the work complete
-      artefact:
-        glob: works/<work>/work.yaml
-        pattern: '^status: complete'
-      on_enter: citation-check    # runs at every rigour level (spec §4.3); advisory
-      next_skill: null
+      name: Complete
+      steps:
+        - id: complete
+          name: Marked complete (the citation check runs)
+          skill: /cite-check
+          recommended: [minimal, standard, full]
+          artifact:
+            glob: works/<work>/work.yaml
+            pattern: '^status: complete'
+
+    - id: finish
+      name: Finish
+      steps:
+        - id: publish
+          name: Publish
+          skill: /publish
+          recommended: []
+          artifact:
+            glob: out/<work>.pdf

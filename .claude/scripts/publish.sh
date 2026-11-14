@@ -40,19 +40,10 @@ cd "$root" || exit 2
 TARGET=${1:-}; FMT=${2:-}
 case $FMT in tex|pdf) ;; *) echo "usage: publish.sh <work | manuscript> <tex | pdf>" >&2; exit 2 ;; esac
 
-# yget <file> <section or -> <key>: a flat value, quotes and comments removed.
-yget() {
-  awk -v sec="$2" -v key="$3" '
-    function val(s) { sub(/[ \t]+#.*$/, "", s); sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s)
-                      if (s ~ /^".*"$/ || s ~ /^\047.*\047$/) s = substr(s, 2, length(s) - 2); return s }
-    { sub(/\r$/, "") }
-    /^[ \t]*(#|$)/ { next }
-    /^[^ \t]/ { top = $0; sub(/:.*/, "", top) }
-    sec == "-" && /^[^ \t]/ && index($0, key ":") == 1 { v = substr($0, length(key) + 2); print val(v); exit }
-    sec != "-" && top == sec && $0 ~ "^[ \t]+" key ":" { v = $0; sub("^[ \t]+" key ":", "", v); print val(v); exit }
-  ' "$1"
-}
-nonnull() { case ${1:-} in ''|null|'~') return 1 ;; *) return 0 ;; esac; }
+# shellcheck source=lib-units.sh
+. "$root/.claude/scripts/lib-units.sh"
+yget() { wu_yget "$@"; }
+nonnull() { wu_nonnull "$@"; }
 
 FORM=$(yget studio.yaml project form)
 TMPD=$(mktemp -d "${TMPDIR:-/tmp}/ws-pub.XXXXXX") || { echo "error: cannot create a temporary directory"; exit 1; }
@@ -66,20 +57,15 @@ case $FORM in
     W="works/$TARGET"
     [ -d "$W" ] || { echo "error: $W does not exist"; exit 2; }
     WY="$W/work.yaml"; [ -f "$WY" ] || { echo "error: $WY does not exist"; exit 1; }
-    ORDER=""
-    [ -f "$W/outline.md" ] && ORDER=$(awk '{ sub(/\r$/, "") } /^### [^ ]/ { print $2 }' "$W/outline.md")
-    [ -n "$ORDER" ] || echo "note: no outline blocks; sections in file-name order"
-    seen=" "
-    for s in $ORDER; do
-      if [ -f "$W/sections/$s.md" ]; then INPUTS+=("$W/sections/$s.md"); seen="$seen$s "; echo "unit: $W/sections/$s.md"
-      else echo "missing: $s (in the outline, no file yet)"; fi
-    done
-    for f in "$W"/sections/*.md; do
-      [ -f "$f" ] || continue
-      s=${f##*/}; s=${s%.md}
-      case $seen in *" $s "*) continue ;; esac
-      INPUTS+=("$f"); [ -n "$ORDER" ] && echo "unlisted: $f (not in the outline; appended)" || echo "unit: $f"
-    done
+    while IFS=$'\t' read -r kind key path st listed; do
+      case $kind in
+        note) echo "note: $key" ;;
+        unit)
+          if [ "$path" = - ]; then echo "missing: $key (in the outline, no file yet)"; continue; fi
+          INPUTS+=("$path")
+          [ "$listed" = yes ] && echo "unit: $path" || echo "unlisted: $path (not in the outline; appended)" ;;
+      esac
+    done < <(wu_units_nonfiction "$TARGET")
     TITLE=$(yget "$WY" - title)
     STYLE=$(yget "$WY" - citation_style); nonnull "$STYLE" || STYLE=$(yget studio.yaml style citation_style)
     LANGTAG=$(yget "$WY" - language); nonnull "$LANGTAG" || LANGTAG=$(yget studio.yaml language default)
@@ -91,47 +77,22 @@ case $FORM in
     ;;
   novel|short|screenplay)
     [ "$TARGET" = manuscript ] || { echo "error: fiction publishes the whole manuscript: publish.sh manuscript <tex|pdf>"; exit 2; }
-    CHAPTERS=""
-    [ -f outline/structure.md ] && CHAPTERS=$(awk -F '|' '{ sub(/\r$/, "") }
-      /^## Chapter list/ { on = 1; next } /^## / { on = 0 }
-      on && NF > 3 { k = $3; gsub(/^[ \t]+|[ \t]+$/, "", k); if (k ~ /^ch[0-9]/) print k }' outline/structure.md)
-    [ -n "$CHAPTERS" ] || { echo "note: no chapter list in outline/structure.md; chapters in folder-name order"
-      CHAPTERS=$(for d in manuscript/*/; do [ -d "$d" ] && { d=${d%/}; echo "${d##*/}"; }; done); }
-    listed=" "
-    for c in $CHAPTERS; do listed="$listed$c "; done
-    for d in manuscript/*/; do
-      [ -d "$d" ] || continue; d=${d%/}; d=${d##*/}
-      case $listed in *" $d "*) ;; *) echo "unlisted: manuscript/$d/ (not in the chapter list; appended)"; CHAPTERS="$CHAPTERS $d" ;; esac
-    done
-    n=0
-    for c in $CHAPTERS; do
-      card="outline/chapters/$c.md"; title=""; ORDER=""
-      if [ -f "$card" ]; then
-        title=$(yget "$card" - title)
-        ORDER=$(awk '{ sub(/\r$/, "") } /^### [^ ]/ { print $2 }' "$card")
-      fi
-      if ! nonnull "$title" && [ -f outline/structure.md ]; then
-        title=$(awk -F '|' -v c="$c" '{ sub(/\r$/, "") }
-          /^## Chapter list/ { on = 1; next } /^## / { on = 0 }
-          on && NF > 4 { k = $3; t = $4; gsub(/^[ \t]+|[ \t]+$/, "", k); gsub(/^[ \t]+|[ \t]+$/, "", t)
-                         if (k == c) { print t; exit } }' outline/structure.md)
-      fi
-      nonnull "$title" || title=$c
-      [ -d "manuscript/$c" ] || { echo "missing: $c (in the chapter list, no folder yet)"; continue; }
-      n=$((n + 1)); h="$TMPD/$(printf '%03d' "$n")-$c.md"
-      printf '# %s\n\n' "$title" > "$h"; INPUTS+=("$h"); echo "chapter: $c — $title"
-      seen=" "
-      for s in $ORDER; do
-        if [ -f "manuscript/$c/$s.md" ]; then INPUTS+=("manuscript/$c/$s.md"); seen="$seen$s "; echo "unit: manuscript/$c/$s.md"
-        else echo "missing: $c/$s (on the card, no file yet)"; fi
-      done
-      for f in "manuscript/$c"/*.md; do
-        [ -f "$f" ] || continue
-        s=${f##*/}; s=${s%.md}
-        case $seen in *" $s "*) continue ;; esac
-        INPUTS+=("$f"); [ -n "$ORDER" ] && echo "unlisted: $f (not on the card; appended)" || echo "unit: $f"
-      done
-    done
+    wu_units_fiction > "$TMPD/units"
+    awk -F '\t' '$1 == "note" { print "note: " $2 } $1 == "chapter" && $6 == "no" { print "unlisted: manuscript/" $2 "/ (not in the chapter list; appended)" }' "$TMPD/units"
+    n=0; skip=0
+    while IFS=$'\t' read -r kind key a b c d; do
+      case $kind in
+        chapter)   # a title, b card, c folder, d listed
+          if [ "$c" = no ]; then echo "missing: $key (in the chapter list, no folder yet)"; skip=1; continue; fi
+          skip=0; n=$((n + 1)); h="$TMPD/$(printf '%03d' "$n")-$key.md"
+          printf '# %s\n\n' "$a" > "$h"; INPUTS+=("$h"); echo "chapter: $key — $a" ;;
+        unit)      # a path, b status, c listed
+          [ "$skip" = 1 ] && continue
+          if [ "$a" = - ]; then echo "missing: $key (on the card, no file yet)"; continue; fi
+          INPUTS+=("$a")
+          [ "$c" = yes ] && echo "unit: $a" || echo "unlisted: $a (not on the card; appended)" ;;
+      esac
+    done < "$TMPD/units"
     TITLE=$(yget studio.yaml project title)
     STYLE=""
     LANGTAG=$(yget studio.yaml language default)

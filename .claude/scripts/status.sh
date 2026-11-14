@@ -366,86 +366,23 @@ else
 fi
 
 # ------------------------------------------------------------------ phases
-# Evaluates workflow.yaml: for each phase, whether its artefact is satisfied.
+# From flow-check.sh, the one reader of workflow.yaml (development-flow §8.2):
+# stage in force, each phase, the recommended steps not yet done, the current
+# phase and the next step. Non-fiction lines carry a `<work>: ` prefix.
 echo "## phases"
-phases_for() {   # $1 fiction|nonfiction, $2 work slug (non-fiction)
-  awk -v form="$1" '
-    function val(s) {
-      sub(/[ \t]+#.*$/, "", s); sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s)
-      if (s ~ /^".*"$/ || s ~ /^\047.*\047$/) s = substr(s, 2, length(s) - 2)
-      return s
-    }
-    function flush() { if (id != "") print id "\t" glob "\t" pat "\t" req "\t" nxt; id = ""; glob = ""; pat = ""; req = "any"; nxt = "" }
-    { sub(/\r$/, "") }
-    /^[ \t]*(#|$)/ { next }
-    /^[^ ]/ { flush(); sec = $0; sub(/:.*/, "", sec); next }
-    sec != form { next }
-    /^ *- id:/ { flush(); v = $0; sub(/^ *- id:/, "", v); id = val(v); next }
-    /^ +stage_key:/ { v = $0; sub(/^ +stage_key:/, "", v); print "stage_key\t" val(v); next }
-    /^ +glob:/ { v = $0; sub(/^ +glob:/, "", v); glob = val(v); next }
-    /^ +pattern:/ { v = $0; sub(/^ +pattern:/, "", v); pat = val(v); next }
-    /^ +require:/ { v = $0; sub(/^ +require:/, "", v); req = val(v); next }
-    /^ +next_skill:/ { v = $0; sub(/^ +next_skill:/, "", v); nxt = val(v); next }
-    END { flush() }
-  ' .claude/workflow.yaml
-}
-eval_phase() {   # $1 glob, $2 pattern, $3 require → sets PH_OK (0/1), PH_WHY
-  local g=$1 pat=$2 req=$3 f any=0 files=0 bad=""
-  PH_OK=0 PH_WHY=""
-  set -- $g
-  for f in "$@"; do
-    [ -f "$f" ] || continue
-    files=$((files + 1))
-    case $req in
-      all_blocks)
-        out=$(awk -v pat="$pat" '
-          { sub(/\r$/, "") }
-          /^### / { if (blk != "" && !hit) print blk; blk = substr($0, 5); hit = 0; nb++; next }
-          blk != "" && $0 ~ pat { hit = 1 }
-          END { if (blk != "" && !hit) print blk; if (!nb) print "(no ### blocks)" }' "$f")
-        if [ -n "$out" ]; then bad+="$f: $(printf '%s' "$out" | paste -sd, -); "; else any=1; fi ;;
-      all)
-        if [ -z "$pat" ] || grep -Eq -- "$pat" "$f"; then any=1; else bad+="$f; "; fi ;;
-      *)
-        if [ -z "$pat" ] || grep -Eq -- "$pat" "$f"; then any=1; fi ;;
-    esac
-  done
-  if [ "$files" = 0 ]; then PH_WHY="no file matches $g"; return; fi
-  case $req in
-    all|all_blocks) if [ -z "$bad" ]; then PH_OK=1; else PH_WHY="not yet: ${bad%; }"; fi ;;
-    *) if [ "$any" = 1 ]; then PH_OK=1; else PH_WHY="no file matching $g contains /$pat/"; fi ;;
-  esac
-}
-report_phases() {   # $1 form, $2 work
-  local form=$1 w=$2 id g pat req nxt first=""
-  while IFS=$'\t' read -r id g pat req nxt; do
-    [ "$id" = stage_key ] && continue
-    g=${g//<work>/$w}
-    eval_phase "$g" "$pat" "$req"
-    if [ "$PH_OK" = 1 ]; then echo "phase: ${w:+$w: }$id	complete"
-    else
-      [ "${nxt:-null}" = null ] && nxt=none
-      echo "phase: ${w:+$w: }$id	incomplete	$PH_WHY	next: $nxt"
-      [ -n "$first" ] || first=$id
-    fi
-  done < <(phases_for "$form")
-  echo "next-phase: ${w:+$w: }${first:-none (all complete)}"
-}
-if [ "$FORM" = nonfiction ]; then
-  for d in works/*/; do
-    [ -d "$d" ] || continue
-    w=${d%/}; w=${w##*/}
-    [ -z "$WANT" ] || [ "$WANT" = "$w" ] || continue
-    st=$(awk '/^status:/ { v = $0; sub(/^status:[ \t]*/, "", v); sub(/[ \t]+#.*$/, "", v); print v; exit }' "$d/work.yaml" 2>/dev/null | tr -d '\r')
-    echo "stage-in-force: $w: ${st:-unset} (work.yaml status)"
-    report_phases nonfiction "$w"
-  done
-  [ -d works ] && [ -n "$(ls -A works 2>/dev/null)" ] || echo "note: no works yet (run /new-work)"
-else
-  st=$(awk '/^project:/ { p = 1; next } /^[^ ]/ { p = 0 } p && /^ +stage:/ { v = $0; sub(/^ +stage:[ \t]*/, "", v); sub(/[ \t]+#.*$/, "", v); print v; exit }' studio.yaml | tr -d '\r')
-  echo "stage-in-force: ${st:-unset} (studio.yaml project.stage)"
-  report_phases fiction ""
-fi
+bash "$root/.claude/scripts/flow-check.sh" ${WANT:+"$WANT"} 2>&1 | tr -d '\r' | awk -F '\t' '
+  /^## work: / { w = substr($0, 10) ": "; next }
+  /^## / { sec = substr($0, 4); next }
+  /^error:/ { print; next }
+  /^note: no works yet/ { print; next }
+  /^stage-in-force: / { sub(/^stage-in-force: /, ""); print "stage-in-force: " w $0; next }
+  sec == "steps" && /^step: / && $4 == "rec" && $3 != "PRESENT" && $3 != "SKIPPED" {
+    p = $1; sub(/^step: /, "", p); print "missing: " w p "/" $2 "\t" $3 "\t" $6 "\t" $7 "\tnext: " $5; next }
+  sec == "steps" && /^step: / && $3 == "SKIPPED" { p = $1; sub(/^step: /, "", p); print "skipped: " w p "/" $2 "\t" $6; next }
+  sec == "phases" && /^phase: / { sub(/^phase: /, ""); print "phase: " w $0; next }
+  sec == "phases" && /^(current-phase|next-step): / { k = $0; sub(/: .*/, "", k); v = $0; sub(/^[a-z-]+: /, "", v); print k ": " w v; next }
+  sec == "write" && /^(drafted|next-unit|card-missing): / { k = $0; sub(/: .*/, "", k); v = $0; sub(/^[a-z-]+: /, "", v); print k ": " w v; next }
+'
 
 # ------------------------------------------------------------------ reviews
 # Latest report per (pass, target); file name <pass>-<target>-<YYYY-MM-DD>[-n].md.

@@ -12,7 +12,8 @@
 | `full` | As `standard`, plus check 7 below |
 
 **Floor:** this pass runs at least once before a work is marked complete, at
-every rigour level (`workflow.yaml` → `complete` → `on_enter`). Its verdict
+every rigour level (`workflow.yaml` → the `complete` step, which `/next`
+hands off to `/cite-check`). Its verdict
 stays advisory: the author can mark the work complete anyway; `/status` keeps
 reporting outstanding errors and the provenance statement mentions them.
 

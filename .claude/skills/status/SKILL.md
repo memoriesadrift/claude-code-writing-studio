@@ -46,8 +46,11 @@ Run `bash .claude/scripts/status.sh [work]`, then read what it cannot judge:
 Then report, in the interface language, in this order and briefly:
 
 - **One line:** form · prose level (+ overrides) · language · rigour.
-- **Where you are:** the phase in force (`stage-in-force`) and the first
-  incomplete phase with what is missing. If they disagree, say so: e.g.
+- **Where you are:** the phase in force (`stage-in-force`), the
+  `current-phase` and its `missing:` steps (recommended at this rigour, not
+  yet done), `skipped:` steps, and for drafting `drafted: n of m`. The
+  `## phases` block comes from `flow-check.sh`, the same facts `/next`
+  uses. If the stage and the current phase disagree, say so: e.g.
   `project.stage` says `revision` but scene cards are still `planned`.
   Nothing hard-blocks; it is information.
 - **Words:** fiction — total and per chapter; non-fiction — per work against
@@ -56,8 +59,10 @@ Then report, in the interface language, in this order and briefly:
 - **Errors:** every `error:` line from the script and point 1, grouped by
   file, each with what to change. Hook-read lines a hook would misread
   (§10.1) come first: a guard may be acting on the wrong value.
-- **Next step:** one, named as a skill (`next:` of the first incomplete
-  phase, or the checkpoint's next step).
+- **Next step:** one, worked out as `/next` does (`.claude/skills/next/
+  SKILL.md`, §3) from the same facts, and handed off the same way: "Type
+  `<command>` to begin." Never run it. Point to `/next` for the guided
+  version.
 
 Non-fiction with several works and no work named: one line per work (status,
 words/limit, next phase), then detail only for the current work.
