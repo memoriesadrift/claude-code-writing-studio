@@ -108,8 +108,13 @@ out/                          /publish output (gitignored)
 fiction:      bible/  outline/  manuscript/<chapter>/<unit>.md  reviews/
               session/active.md  session/progress.yaml  session/provenance.jsonl
 non-fiction:  compendium/  works/<work>/ (+ progress.yaml)  session/provenance.jsonl
+              session/current-work  (the work in progress; per machine, gitignored)
 both:         ideas/  (writer's brief, brainstorm sessions, parked ideas, open questions)
 ```
+
+**Current work** (non-fiction): when the author starts on a different work,
+overwrite `session/current-work` with its slug, one line, no "May I write?"
+needed. Skills that take a work default to it.
 
 ## Non-fiction: no invented sources
 
@@ -118,7 +123,67 @@ treat a source as verified until the author has confirmed it, and never set
 `status: verified` yourself. Cite with Pandoc citekeys (`[@rawls1993, p. 137]`)
 and quote directly only from a source note's *Quotations* section.
 
-<!--
-TODO (filled in as later tasks land): skills index, agents and review passes,
-language packs, rules, hooks, publishing.
--->
+## Hooks (`.claude/hooks/`, registered in `.claude/settings.json`)
+
+A denial is the studio's rule, not a fault: explain it to the author and
+change the approach. Never retry the same call, or route around a guard
+through the shell.
+
+- `session-start` — injects the checkpoint, a one-line status and the next
+  step from `flow-check.sh`.
+- `prose-guard` (Write, Edit, Bash, PowerShell) — denies prose writes at
+  `critic`/`coach` (and under an integrity cap), any edit of a `locked: true`
+  file or inside an author fence; at `editor` and above it adds the level's
+  contract. It allows `bash .claude/scripts/import-draft.sh …` alone on a
+  line at every level.
+- `read-guard` (Read) — a whole-file read of a large prose, bible or
+  compendium file returns its headings instead; read one section with
+  `offset`/`limit`.
+- `verify-guard` (Write, Edit) — setting a source note to `status: verified`
+  is denied unless its archived files pass `sha256sum -c` (or `held` is set
+  for a physical copy), and otherwise always asks the author.
+- `provenance-log` — appends each of Claude's writes to
+  `session/provenance.jsonl` (what `/status provenance` summarises).
+
+Guards fail closed without jq; `/start` installs it.
+
+## Helper scripts (`.claude/scripts/`)
+
+They report facts; agents and the author judge. Run from the project root.
+
+| Script | Writes? | For |
+|---|---|---|
+| `status.sh [work] \| provenance [work]` | no | `/status`: config lint, counts, reviews, phases |
+| `flow-check.sh [work] \| disk` | no | `/next`, `/start`: the flow against the files |
+| `flow-mark.sh <step> <done\|skipped\|clear> [work]` | progress file | a skill marking its step |
+| `continuity-scan.sh` | no | `/continuity-check` |
+| `cite-scan.sh [work [section…]]` | no | `/cite-check`, the citation pass |
+| `archive-hash.sh <citekey>` | no | `/source`: checksum lines to add |
+| `import-draft.sh draft\|note …` | prose, `ideas/`, `compendium/inbox/` | `/import`, verbatim only |
+| `publish.sh <work\|manuscript> <tex\|pdf>` | `out/` | `/publish` |
+| `install-tool.sh check\|install <tool>` | `.claude/bin/` on install | jq, Pandoc, Tectonic; install only on approval |
+| `csl-fetch.sh <style-id>` | `.claude/csl/` | a citation style, on approval |
+
+## Agents and review passes
+
+Agents (`.claude/agents/`) are read-only and return text; the main session
+asks before writing anything they propose.
+
+- `developmental-editor` — does the story or argument work; passes
+  `developmental`, `milestone`; gates `premise`, `question`.
+- `structure-architect` — shape, sequence, argument architecture; `/outline`,
+  `/plot`; gates `spine`, `argument`.
+- `character-lead` (fiction) — arcs, motives, voice; `/cast` rounds,
+  `/bible character`; gate `cast`.
+- `continuity-editor` — the registry (fiction) or citations (non-fiction);
+  passes `continuity`, `citation`.
+- `line-editor`, `grammar-editor` — passes `line`, `grammar`, by the
+  language pack in force (`.claude/languages/`).
+- `beta-reader` — pass `beta`: a reader persona, or the marker for
+  assessed work.
+- `librarian` (non-fiction) — the compendium; `/source`, `/compendium`,
+  `/ask`.
+
+Pass files are in `.claude/reviews/`, gates in `.claude/reviews/gates/`;
+reports follow `.claude/rules/reviews.md`. Path-scoped rules in
+`.claude/rules/` load with the files they govern.

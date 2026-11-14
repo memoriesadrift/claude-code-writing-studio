@@ -7,6 +7,7 @@
 #   non-fiction   the current work's works/<work>/checkpoint.md, where the
 #                 current work is the slug in session/current-work; if that
 #                 file is absent or stale, each work's "Next step" instead
+# Adds the next step from flow-check.sh (development-flow §12) to both.
 # Runs on startup, resume, /clear and after compaction alike. Needs no jq.
 
 . "${BASH_SOURCE%/*}/lib.sh"
@@ -46,6 +47,44 @@ strip_comments() {
   ' "$1"
 }
 
+# The next step from flow-check.sh (development-flow §12), in one line:
+# "Next: <what> (<command>)". /next gives the full picture; this is a pointer.
+# Sets NEXT_LINE ("" if flow-check could not run). $1: the work (non-fiction).
+next_line() {
+  NEXT_LINE=""
+  local out ph="" ns="" nu="" cm="" rg="" k v
+  out=$(cd "$WS_ROOT" && bash .claude/scripts/flow-check.sh ${1:+"$1"} 2>/dev/null) || return 0
+  while IFS= read -r v; do
+    v=${v%$'\r'}
+    case $v in
+      "rigour: "*)        rg=${v#rigour: } ;;
+      "current-phase: "*) ph=${v#current-phase: } ;;
+      "next-step: "*)     ns=${v#next-step: } ;;
+      "next-unit: "*)     [ -n "$nu" ] || nu=${v#next-unit: } ;;
+      "card-missing: "*)  [ -n "$cm" ] || cm=${v#card-missing: } ;;
+    esac
+  done <<< "$out"
+  [ -n "$ns" ] || return 0
+  if [ "$ns" = none ]; then
+    NEXT_LINE="Next: every phase is complete"
+  elif [ "$ph" = draft ]; then
+    cm=${cm%%$'\t'*}
+    k=${nu%%$'\t'*}
+    if [ -n "$cm" ] && [ "$rg" != minimal ]; then
+      NEXT_LINE="Next: a card for $cm (/outline $cm)"
+    elif [ -n "$k" ] && [ "$k" != none ]; then
+      v=${nu#*level: }; v=${v%%$'\t'*}
+      NEXT_LINE="Next: $k (/draft, $v)"
+    else
+      NEXT_LINE="Next: the write loop (/draft)"
+    fi
+  else
+    v=${ns#*$'\t'}                       # <skill>\t<name>
+    NEXT_LINE="Next: ${v#*$'\t'} (${v%%$'\t'*})"
+  fi
+}
+NEXT_RULE="The \"Next:\" step comes from flow-check.sh; /next explains it and hands off. Never run that command yourself: the author types it."
+
 LANG_S=${WS_LANG:-unset}
 FORM=${WS_FORM:-unset}
 
@@ -56,12 +95,15 @@ if [ "$FORM" != nonfiction ]; then
   STATUS="Writing Studio · $FORM · prose level $WS_LEVEL"
   [ "$NOV" -gt 0 ] && STATUS+=" (+$NOV override$([ "$NOV" = 1 ] || echo s))"
   STATUS+=" · language $LANG_S$JQ_NOTE"
+  next_line ""
+  [ -n "$NEXT_LINE" ] && STATUS+=" · $NEXT_LINE"
   CP="$WS_ROOT/session/active.md"
   if [ -f "$CP" ]; then
     CTX="$STATUS"$'\n\n'"Checkpoint (session/active.md):"$'\n'"$(strip_comments "$CP")"
   else
     CTX="$STATUS"$'\n\n'"No checkpoint yet (session/active.md does not exist). Create it from .claude/templates/shared/checkpoint.md at the first milestone."
   fi
+  [ -n "$NEXT_LINE" ] && CTX+=$'\n\n'"$NEXT_RULE"
   emit "$CTX" "$STATUS"
 fi
 
@@ -131,6 +173,11 @@ for w in "${WORKS[@]}"; do
 done
 if [ -n "$LINES" ]; then STATUS+=" · ${LINES%; }"; else STATUS+=" · no works yet"; fi
 STATUS+=$JQ_NOTE
+NEXT_LINE=""
+if [ -n "$CUR" ]; then
+  next_line "$CUR"
+  [ -n "$NEXT_LINE" ] && STATUS+=" · $CUR — $NEXT_LINE"
+fi
 
 POINTER_RULE="When the author starts work on a different work, overwrite session/current-work with that work's slug (one line; no \"May I write?\" needed, as for checkpoints)."
 
@@ -159,5 +206,6 @@ else
   done
 fi
 [ -n "$CUR_NOTE" ] && BODY="$CUR_NOTE"$'\n'"$BODY"
+[ -n "$NEXT_LINE" ] && POINTER_RULE+=" $NEXT_RULE"
 
 emit "$STATUS"$'\n\n'"$BODY"$'\n\n'"$POINTER_RULE" "$STATUS"

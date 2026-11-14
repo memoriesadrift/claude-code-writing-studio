@@ -34,11 +34,52 @@ from `critic` (Claude never writes a word of your prose) up to `ghostwriter`.
 
 1. Copy or clone this template, once per project.
 2. Open Claude Code at the project root.
-3. Run `/start`. It asks for the form, how much process you want (`rigour`),
-   how much prose Claude may write (`prose.level`), and the language. For
-   non-fiction it also asks for the field, the citation style and the
-   academic-integrity cap. It then writes `studio.yaml` and names your next
-   step.
+3. Run `/start`. It meets you where you are — nothing yet, a seed, a clear
+   idea, or material you have already written — and asks for the form, how
+   much process you want (`rigour`), how much prose Claude may write
+   (`prose.level`), how much Claude contributes to creative choices
+   (`modes.ideas`), and the language. For non-fiction it also asks for the
+   field, the citation style and the academic-integrity cap. It writes
+   `studio.yaml`, shows your path, and names the first step.
+4. After that, `/next` always says where you are and what comes next.
+
+Every command ends by naming one next step ("Type `/cast` to begin.") and
+never runs it for you: you type it.
+
+## The flow
+
+Orient → Discover → Develop → Plan → Write loop → Revise → Finish. Rigour
+decides which steps are recommended; none is a gate, and you can start
+drafting as soon as you have a brief.
+
+| Phase | Fiction | Non-fiction |
+|---|---|---|
+| Orient | `/start`, `/import` | `/start`, `/import` |
+| Discover | `/brainstorm`, `/premise` | `/brainstorm`, `/new-work` |
+| Develop / research | `/cast`, `/world`, `/bible` | `/ask`, `/source`, `/compendium` |
+| Plan | `/plot`, `/outline` | `/outline <work>` |
+| Write loop | `/draft <unit>`, then `/draft <unit> done` | the same |
+| Revise | `/review milestone`, `/continuity-check` | `/review developmental <work>`, `/cite-check` |
+| Finish | `/publish` | `/publish <work>` |
+
+At `full` rigour, development gates (`/review gate premise`, `cast`, `spine`,
+`question`, `argument`) give an advisory verdict before you build on a step.
+`/status` shows the whole project at once; `/status provenance` summarises
+what Claude wrote, and drafts an AI-use statement for assessed work.
+
+## How much Claude writes
+
+| `prose.level` | Claude in your prose files |
+|---|---|
+| `critic` | nothing: feedback only |
+| `coach` | nothing: feedback, plus short labelled illustrations |
+| `editor` | line edits you accept one at a time |
+| `co-author` | whole units drafted from your outline, each approved |
+| `ghostwriter` | whole chapters or works, unit by unit, each approved |
+
+The level can differ per chapter, unit, work or section. Assessed
+non-fiction is capped (`coach` by default). Hooks enforce this: at `critic`
+and `coach`, Claude cannot write to your prose files at all.
 
 ## Principles
 
@@ -51,7 +92,8 @@ from `critic` (Claude never writes a word of your prose) up to `ghostwriter`.
 - **No invented sources.** Claude cites only sources in your compendium. Every
   cited source has an archived copy, and only you can mark a source verified.
 
-The full design is in [`docs/specs/2026-11-07-writing-studio-v1-design.md`](docs/specs/2026-11-07-writing-studio-v1-design.md).
+The full design is in [`docs/specs/2026-11-07-writing-studio-v1-design.md`](docs/specs/2026-11-07-writing-studio-v1-design.md),
+amended by [`docs/specs/2026-11-10-writing-studio-development-flow.md`](docs/specs/2026-11-10-writing-studio-development-flow.md).
 
 ## Your archive and copyright
 

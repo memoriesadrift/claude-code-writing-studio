@@ -2,6 +2,17 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "defaultMode": "default",
+    "allow": [
+      "Bash(bash .claude/scripts/status.sh)",
+      "Bash(bash .claude/scripts/status.sh *)",
+      "Bash(bash .claude/scripts/flow-check.sh)",
+      "Bash(bash .claude/scripts/flow-check.sh *)",
+      "Bash(bash .claude/scripts/continuity-scan.sh)",
+      "Bash(bash .claude/scripts/continuity-scan.sh *)",
+      "Bash(bash .claude/scripts/cite-scan.sh)",
+      "Bash(bash .claude/scripts/cite-scan.sh *)",
+      "Bash(bash .claude/scripts/install-tool.sh check *)"
+    ],
     "deny": [
       "Read(**/.env*)",
       "Edit(**/.env*)",
@@ -14,6 +25,43 @@
       "PowerShell(Remove-Item *-Recurse*)",
       "PowerShell(git push --force*)",
       "PowerShell(git reset --hard*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh\"" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|Bash|PowerShell",
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/prose-guard.sh\"" }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/read-guard.sh\"" }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/verify-guard.sh\"" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/provenance-log.sh\"" }
+        ]
+      }
     ]
   }
 }
