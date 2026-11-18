@@ -18,7 +18,7 @@ This file's path and the work only. The agent reads:
 
 - `works/<work>/brief.md` — the research question in force (`vN`), the
   assignment and marking criteria (verbatim), constraints
-- `works/<work>/work.yaml` — `kind`, `word_limit`, `assessed`, `policy`
+- `works/<work>/work.yaml` — `kind`, `word_limit`, `page_limit`, `assessed`, `policy`
 - `compendium/positions/`, `compendium/claims.yaml` and the source notes the
   question touches — what the author already holds on it
 
@@ -28,7 +28,7 @@ This file's path and the work only. The agent reads:
    settle it, or at least take a defensible side?
 2. **Arguable.** Does it admit more than one reasonable answer? A question
    with an obvious answer, or none, is a finding.
-3. **In scope.** Can it be answered well within the word limit and the kind
+3. **In scope.** Can it be answered well within the word or page limit and the kind
    of work? Name what would have to be cut, or what is missing.
 4. **Fit to the brief.** Does it answer the assignment as set, and could the
    work meet each marking criterion while answering it?

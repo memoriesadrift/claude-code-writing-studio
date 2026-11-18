@@ -177,6 +177,10 @@ awk "$AWK_LIB"'
       err(FILENAME, FNR, "integrity.assessed_cap `" v "` is not a prose level")
     next }
   top == "project" && k == "form" { b = badflat(v); if (b != "") err(FILENAME, FNR, "project.form: " b); next }
+  top == "style" && k == "words_per_page" {
+    v = unq(v); if (v != "" && v != "null" && v != "~" && (v !~ /^[0-9]+$/ || v + 0 == 0))
+      err(FILENAME, FNR, "style.words_per_page must be a whole number above 0 or null, not `" v "` (the page estimate uses 250)")
+    next }
   top == "language" && k == "default" { lang = FNR
     b = badflat(v); if (b != "") { err(FILENAME, FNR, "language.default: " b); next }
     if (unq(v) !~ /^[A-Za-z][A-Za-z][A-Za-z]?(-[A-Za-z0-9][A-Za-z0-9]+)*$/) err(FILENAME, FNR, "language.default `" unq(v) "` is not a BCP 47 tag")
@@ -192,14 +196,28 @@ if [ "$FORM" = nonfiction ]; then
     [ -f "$f" ] || continue
     awk "$AWK_LIB"'
       { sub(/\r$/, "") }
-      /^[ \t]+(assessed|assessed_cap|word_limit):/ { err(FILENAME, FNR, "hook-read key is indented; it must start the line"); next }
-      /^(assessed|assessed_cap|word_limit):/ {
+      /^[^ \t#]/ { inpf = 0 }
+      /^page_format:/ { inpf = 1; v = $0; sub(/^[^:]*:/, "", v); v = nocomment(v)
+        if (v != "" && v != "{}" && v != "null" && v != "~") err(FILENAME, FNR, "page_format must be a block (`fontsize:` and `linestretch:` lines under it), not " v)
+        next }
+      inpf && /^[ \t]+(fontsize|linestretch):/ {
+        k = $0; sub(/:.*/, "", k); k = trim(k); v = $0; sub(/^[^:]*:/, "", v); v = unq(nocomment(v))
+        if (v != "" && v != "null" && v != "~" && (v !~ /^[0-9]+(\.[0-9]+)?$/ || v + 0 == 0))
+          err(FILENAME, FNR, "page_format." k " must be a number or null, not `" v "` (fontsize in pt, e.g. 12; linestretch e.g. 1.5)")
+        else if (k == "fontsize" && v ~ /^[0-9]/ && (v + 0 < 8 || v + 0 > 14)) note(FILENAME, FNR, "page_format.fontsize " v " is unusual: the page estimate will be rough")
+        next }
+      /^[ \t]+(assessed|assessed_cap|word_limit|page_limit):/ { err(FILENAME, FNR, "hook-read key is indented; it must start the line"); next }
+      /^words_per_page:/ { v = $0; sub(/^[^:]*:/, "", v); v = unq(nocomment(v))
+        if (v != "" && v != "null" && v != "~" && (v !~ /^[0-9]+$/ || v + 0 == 0)) err(FILENAME, FNR, "words_per_page must be a whole number above 0 or null, not `" v "`")
+        next }
+      /^(assessed|assessed_cap|word_limit|page_limit):/ {
         k = $0; sub(/:.*/, "", k); v = $0; sub(/^[^:]*:/, "", v); v = nocomment(v)
         b = badflat(v); if (b != "") { err(FILENAME, FNR, k ": " b); next }
         v = unq(v); seen[k] = 1
         if (k == "assessed" && v != "true" && v != "false") err(FILENAME, FNR, "assessed must be true or false (hooks read anything else as false), not `" v "`")
         if (k == "assessed_cap" && v != "" && v != "null" && v != "~" && v !~ /^(critic|coach|editor|co-author|ghostwriter)$/) err(FILENAME, FNR, "assessed_cap `" v "` is not a prose level or null")
         if (k == "word_limit" && v != "" && v != "null" && v !~ /^[0-9]+$/) err(FILENAME, FNR, "word_limit must be a whole number or null, not `" v "`")
+        if (k == "page_limit" && v != "" && v != "null" && v != "~" && v !~ /^[0-9]+$/) err(FILENAME, FNR, "page_limit must be a whole number or null, not `" v "`")
       }
       END { if (!seen["assessed"]) note(FILENAME, 0, "no `assessed:` line: treated as not assessed") }
     ' "$f"
@@ -346,11 +364,33 @@ count_words() {   # $1 excludes (comma list), files…
     END { for (f in w) print f "\t" w[f] }
   ' "$@"
 }
+# Pages: an estimate from the counted words (ws_words_per_page in lib.sh), and
+# the real count of the last /publish PDF from out/<target>.pages (written by
+# publish.sh), `stale` if an input changed after that build. The PDF count is
+# the whole document, title page and bibliography included.
+PDF_N="" PDF_FRESH=""
+pdf_pages() {   # $1 target, then the inputs that change the PDF
+  local t=$1 f="out/$1.pages" n="" b="" k v ch
+  shift
+  PDF_N="" PDF_FRESH=""
+  [ -f "$f" ] || return 0
+  while IFS= read -r k; do
+    k=${k%$'\r'}; v=${k#*: }
+    case $k in pages:*) n=$v ;; built:*) b=$v ;; esac
+  done < "$f"
+  case $n in ''|*[!0-9]*) echo "note: $f is unreadable; run /publish again"; return 0 ;; esac
+  ch=$(find "$@" -type f -newer "$f" 2>/dev/null | head -1)
+  PDF_N=$n
+  if [ -n "$ch" ]; then PDF_FRESH=no; echo "pdf-pages: $t	$n	built: ${b:-?}	stale ($ch changed since)"
+  else PDF_FRESH=yes; echo "pdf-pages: $t	$n	built: ${b:-?}	fresh"; fi
+}
+
 if [ "$FORM" = nonfiction ]; then
   for d in works/*/; do
     [ -d "$d" ] || continue
     w=${d%/}; w=${w##*/}
     [ -z "$WANT" ] || [ "$WANT" = "$w" ] || continue
+    ws_load_work "$w"; ws_words_per_page
     lim=$(awk '/^word_limit:/ { v = $0; sub(/^word_limit:[ \t]*/, "", v); sub(/[ \t]+#.*$/, "", v); print v; exit }' "$d/work.yaml" 2>/dev/null | tr -d '\r')
     ex=$(awk '/^word_count_excludes:/ { v = $0; sub(/^word_count_excludes:[ \t]*/, "", v); sub(/[ \t]+#.*$/, "", v); gsub(/[][ "\047]/, "", v); print v; exit }' "$d/work.yaml" 2>/dev/null | tr -d '\r')
     set -- "$d"sections/*.md
@@ -370,18 +410,39 @@ if [ "$FORM" = nonfiction ]; then
       *) echo "work: $w	$total	limit: $lim	excludes: ${ex:-none}"
          [ "$total" -gt "$lim" ] && echo "note: $w is over its word limit by $((total - lim))" ;;
     esac
+    ws_pages "$total"
+    plim=${WS_W_PLIMIT:-}
+    case $plim in ''|null|'~') plim=none ;; *[!0-9]*) plim="unreadable ($plim)" ;; esac
+    echo "pages: $w	~$WS_PAGES	at $WS_WPP words/page ($WS_WPP_SRC)	limit: $plim"
+    set -- "$d"sections "$d"outline.md "$d"work.yaml "$d"template.tex
+    [ -f compendium/library.bib ] && set -- "$@" compendium/library.bib
+    pdf_pages "$w" "$@"
+    case $plim in
+      none|unreadable*) ;;
+      *)
+        if [ "$PDF_FRESH" = yes ]; then
+          [ "$PDF_N" -gt "$plim" ] && echo "note: $w is over its page limit by $((PDF_N - plim)) (the PDF, whole document)"
+        else
+          LC_ALL=C awk -v p="$WS_PAGES" -v l="$plim" 'BEGIN { exit !(p + 0 > l + 0) }' &&
+            echo "note: $w is over its page limit by about $(LC_ALL=C awk -v p="$WS_PAGES" -v l="$plim" 'BEGIN { printf "%.1f", p - l }') (estimate; /publish for the real count)"
+        fi ;;
+    esac
   done
 else
+  ws_words_per_page
   set -- manuscript/*/*.md
   if [ -f "$1" ]; then
-    count_words "" "$@" | sort | awk -F '\t' '
+    count_words "" "$@" | sort | LC_ALL=C awk -F '\t' -v wpp="$WS_WPP" -v src="$WS_WPP_SRC" '
       { ch = $1; sub(/^manuscript\//, "", ch); sub(/\/.*/, "", ch); c[ch] += $2; u[ch]++; t += $2
         if (!(ch in seen)) { seen[ch] = 1; order[++n] = ch } }
-      END { for (i = 1; i <= n; i++) printf "chapter: %s\t%d\tunits: %d\n", order[i], c[order[i]], u[order[i]]
-            printf "total: %d\n", t }'
+      END { for (i = 1; i <= n; i++) printf "chapter: %s\t%d\tunits: %d\t~%.1f pages\n", order[i], c[order[i]], u[order[i]], c[order[i]] / wpp
+            printf "total: %d\n", t
+            printf "pages: manuscript\t~%.1f\tat %d words/page (%s)\n", t / wpp, wpp, src }'
   else
     echo "total: 0"
   fi
+  set -- manuscript outline
+  pdf_pages manuscript "$@"
 fi
 
 # ------------------------------------------------------------------ phases

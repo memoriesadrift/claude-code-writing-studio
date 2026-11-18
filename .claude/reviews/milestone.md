@@ -34,7 +34,9 @@ This file's path and the target only. The agent reads:
    came from. Do not re-judge them; say whether each still applies.
 3. Say whether a fresh continuity or citation pass is needed (no report yet,
    or units written since the last one), and name it as the next step.
-4. Non-fiction: word count against `word_limit`; the research question in
+4. Non-fiction: word count against `word_limit` and pages against
+   `page_limit` (`status.sh <work>`: the fresh PDF count, else the estimate,
+   said as such); the research question in
    force against the thesis the work actually argues.
 5. Close with what stands between the target and done, in order.
 

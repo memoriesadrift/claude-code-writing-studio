@@ -20,7 +20,7 @@ This file's path and the work only. The agent reads:
   block (claim, role, claim ids, citekeys, target words)
 - `works/<work>/brief.md` — the research question in force (`vN`), the
   assignment and marking criteria (verbatim)
-- `works/<work>/work.yaml` — `kind`, `word_limit`, `word_count_excludes`,
+- `works/<work>/work.yaml` — `kind`, `word_limit`, `page_limit`, `word_count_excludes`,
   `assessed`, `policy`
 - `compendium/claims.yaml` — the claims the blocks name, with their support
   and objections
@@ -43,7 +43,8 @@ Not the sections' prose: the gate judges the plan.
    it? Name the sections whose support is a gap, and the citekeys whose
    note is `unverified`. Never name a source that has no note.
 5. **Proportion.** Do the target words add up to the limit less the
-   exclusions, and does each section's share fit its weight in the argument?
+   exclusions (for a page limit, the word budget the outline states for
+   it), and does each section's share fit its weight in the argument?
 6. **Fit to the criteria.** Could the work, built this way, meet each
    marking criterion? Name a criterion no section addresses.
 

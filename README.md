@@ -76,7 +76,9 @@ drafting as soon as you have a brief.
 
 At `full` rigour, development gates (`/review gate premise`, `cast`, `spine`,
 `question`, `argument`) give an advisory verdict before you build on a step.
-`/status` shows the whole project at once; `/status provenance` summarises
+`/status` shows the whole project at once, with word counts and page counts
+(estimated while you draft, exact from the last PDF; a work can have a word
+limit, a page limit or both); `/status provenance` summarises
 what Claude wrote, and drafts an AI-use statement for assessed work.
 
 ## How much Claude writes

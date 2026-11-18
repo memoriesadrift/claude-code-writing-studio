@@ -27,7 +27,7 @@ paths:
 - **Never raise `assessed_cap` or set `assessed: false` as a convenience.**
   Only the author changes these, deliberately; no skill offers it.
 - `policy` is the author's AI-use policy, verbatim.
-- Hook-read lines (`assessed`, `assessed_cap`, `word_limit`) stay flat:
+- Hook-read lines (`assessed`, `assessed_cap`, `word_limit`, `page_limit`) stay flat:
   `key: value` on one line, no flow collections, quotes only around the
   whole value.
 - `status` (`brief | draft | revision | complete`) is changed by the author

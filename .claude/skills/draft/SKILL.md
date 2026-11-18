@@ -226,7 +226,9 @@ one line as available on request, not done.
 3. **Words** — run `bash .claude/scripts/status.sh` (non-fiction:
    `status.sh <work>`). Fiction: the unit's and the chapter's words.
    Non-fiction: the section against its target words, and the work against
-   `word_limit` with the exclusions that applied; flag an overrun.
+   `word_limit` with the exclusions that applied, and against `page_limit`
+   (the `pdf-pages:` count if fresh, else the `pages:` estimate, said as
+   such); flag an overrun.
 4. **Checks rigour calls for** (§4.3), run as `/review` runs them (read
    `.claude/skills/review/SKILL.md` and follow it: agent, verdict shown, then
    "May I write the report to `<path>`?"):

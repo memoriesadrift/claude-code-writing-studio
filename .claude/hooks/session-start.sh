@@ -169,6 +169,10 @@ for w in "${WORKS[@]}"; do
   [ -n "$WS_CAP_NOTE" ] && L+=" (capped)"
   if [ -n "$WS_W_LIMIT" ] && [ "$WS_W_LIMIT" != null ]; then L+=", ~$WC/$WS_W_LIMIT words"
   else L+=", ~$WC words"; fi
+  case ${WS_W_PLIMIT:-} in
+    ''|null|'~'|*[!0-9]*) ;;
+    *) ws_words_per_page; ws_pages "$WC"; L+=", ~$WS_PAGES/$WS_W_PLIMIT pages" ;;
+  esac
   LINES+="$L; "
 done
 if [ -n "$LINES" ]; then STATUS+=" · ${LINES%; }"; else STATUS+=" · no works yet"; fi

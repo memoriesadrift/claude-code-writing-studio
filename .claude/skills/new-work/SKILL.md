@@ -1,6 +1,6 @@
 ---
 name: new-work
-description: "Non-fiction - create works/<work>/ from an assignment - the author pastes the brief and marking criteria (kept verbatim), sets kind, word limit, whether it is assessed and, if so, the AI-use policy and the integrity cap; Claude drafts a working research question or thesis as v1. Writes work.yaml, brief.md, an empty outline, the checkpoint and session/current-work. Use when the author starts a new essay, paper, dissertation or report, or types /new-work."
+description: "Non-fiction - create works/<work>/ from an assignment - the author pastes the brief and marking criteria (kept verbatim), sets kind, word or page limit, whether it is assessed and, if so, the AI-use policy and the integrity cap; Claude drafts a working research question or thesis as v1. Writes work.yaml, brief.md, an empty outline, the checkpoint and session/current-work. Use when the author starts a new essay, paper, dissertation or report, or types /new-work."
 argument-hint: "[slug]"
 allowed-tools: Read, Glob, Grep, Agent, Bash(bash .claude/scripts/status.sh*), Bash(bash .claude/scripts/flow-check.sh*), Bash(bash .claude/scripts/flow-mark.sh *)
 ---
@@ -57,10 +57,18 @@ In one or two rounds:
 1. **Title** (as it will appear on the work).
 2. **Kind:** `essay` · `paper` · `article` · `dissertation` · `report` ·
    `other`. **Module** (optional, e.g. a course code), else `null`.
-3. **Word limit** (`null` if none) and what does not count
-   (`word_count_excludes`; default `[bibliography, footnotes]`; offer
-   `citations` and `headings` if the assignment says so). Read the limit off
-   the assignment if it states one, and confirm.
+3. **Length limit: words, pages, or both** (each `null` if none), and what
+   does not count (`word_count_excludes`; default `[bibliography,
+   footnotes]`; offer `citations` and `headings` if the assignment says so).
+   Read the limits off the assignment if it states them, and confirm. For a
+   **page limit**, also take the page format the brief states — font size
+   (`page_format.fontsize`, in pt) and line spacing (`linestretch`: 1, 1.5,
+   2), `null` for what it does not say — and what the limit counts (title
+   page, bibliography); note margins and font in the brief's *Constraints*.
+   The format only drives the estimate in `/status`; the real count comes
+   from the PDF `/publish` builds, which matches the brief only if its
+   LaTeX template does (say so, and that `template:` in `work.yaml` takes
+   one).
 4. **Assessed?** If **yes**:
    - **Policy:** the AI-use rules that apply to this work, **verbatim** as the
      author gives them (a category name, a paragraph from the module
@@ -100,7 +108,7 @@ One file per approval, in this order, each shown in full first:
 
 1. `works/<slug>/work.yaml` — from `.claude/templates/nonfiction/work.yaml`:
    `status: brief`; the answers above; keep the comments. The hook-read lines
-   (`assessed`, `assessed_cap`, `word_limit`) stay flat (`key: value`, quotes
+   (`assessed`, `assessed_cap`, `word_limit`, `page_limit`) stay flat (`key: value`, quotes
    only around the whole value). `policy` is quoted as a whole; if it spans
    several paragraphs, use a YAML block scalar (`policy: |`) — that line is
    not hook-read.

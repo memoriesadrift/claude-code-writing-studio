@@ -1,6 +1,6 @@
 ---
 name: status
-description: "Where the project stands - phase and next step, word counts (against limits for works), latest review verdicts and outstanding checks, config errors. /status provenance [work] summarises what Claude wrote; /status provenance statement <work> drafts an AI-use acknowledgement. Use when the author asks where they are, what's next, or for a provenance summary."
+description: "Where the project stands - phase and next step, word and page counts (against limits for works), latest review verdicts and outstanding checks, config errors. /status provenance [work] summarises what Claude wrote; /status provenance statement <work> drafts an AI-use acknowledgement. Use when the author asks where they are, what's next, or for a provenance summary."
 argument-hint: "[provenance [statement]] [work]"
 allowed-tools: Read, Glob, Grep, Bash(bash .claude/scripts/status.sh*)
 ---
@@ -55,6 +55,12 @@ Then report, in the interface language, in this order and briefly:
   Nothing hard-blocks; it is information.
 - **Words:** fiction — total and per chapter; non-fiction — per work against
   `word_limit` (say which exclusions applied), over-limit flagged.
+- **Pages:** the estimate from the `pages:` lines (say the words per page
+  and where that came from: it is an estimate), and the last PDF's real
+  count from `pdf-pages:` with its build time; if `stale`, say which file
+  changed and that `/publish` refreshes it. Non-fiction: against
+  `page_limit`, over-limit flagged; the PDF count is the whole document
+  (title page, bibliography), so say what the brief counts if it differs.
 - **Outstanding checks** from points 3–4.
 - **Errors:** every `error:` line from the script and point 1, grouped by
   file, each with what to change. Hook-read lines a hook would misread
@@ -65,7 +71,7 @@ Then report, in the interface language, in this order and briefly:
   version.
 
 Non-fiction with several works and no work named: one line per work (status,
-words/limit, next phase), then detail only for the current work.
+words/limit, pages/limit if it has one, next phase), then detail only for the current work.
 
 ## `/status provenance [work]`
 

@@ -5,7 +5,8 @@
 #   publish.sh <work | manuscript> <tex | pdf>
 #
 # Fiction takes `manuscript`; non-fiction a work slug. Writes only under out/:
-#   out/<target>.tex, and for pdf out/<target>.pdf (+ the engine's log).
+#   out/<target>.tex, and for pdf out/<target>.pdf (+ the engine's log) and
+#   out/<target>.pages (the page count and build time, read by status.sh).
 #
 # Order: fiction — chapters from the chapter list in outline/structure.md,
 # scenes from each card's `### scNN-slug` blocks; non-fiction — the
@@ -230,4 +231,28 @@ fi
 grep -i 'warning' "$TMPD/compile.out" | tr -d '\r' | head -5 | sed 's/^/warning: /'
 echo "output: out/$OUT.pdf"
 [ -f "$LOG" ] && echo "log: $LOG"
+
+# Page count: TeX's own "Output written on … (N pages, …)" line from the log
+# (or the engine's console output), else the PDF's /Type /Page objects
+# (missed when they sit in compressed object streams). Recorded in
+# out/<target>.pages for /status, which compares it with the sources' times.
+PAGES=""
+for src in "$LOG" "$TMPD/compile.out"; do
+  [ -f "$src" ] || continue
+  PAGES=$(tr -d '\r' < "$src" | awk 'match($0, /Output written on .*\([0-9]+ pages?/) {
+            s = substr($0, RSTART, RLENGTH); sub(/.*\(/, "", s); sub(/ .*/, "", s); n = s }
+          END { print n }')
+  [ -n "$PAGES" ] && break
+done
+if [ -z "$PAGES" ]; then
+  PAGES=$(LC_ALL=C grep -a -o '/Type[[:space:]]*/Page[^s]' "out/$OUT.pdf" 2>/dev/null | wc -l | tr -d ' ')
+  [ "${PAGES:-0}" -gt 0 ] 2>/dev/null || PAGES=""
+fi
+if [ -n "$PAGES" ]; then
+  echo "pages: $PAGES"
+  printf 'pages: %s\nbuilt: %s\n' "$PAGES" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "out/$OUT.pages"
+else
+  echo "note: could not read the page count from the log or the PDF"
+  rm -f "out/$OUT.pages"
+fi
 exit 0

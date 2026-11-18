@@ -8,8 +8,14 @@ assessed: {{assessed}}           # (hook-read) true → integrity rules apply (s
 assessed_cap: null               # (hook-read) cap for this work; null → integrity.assessed_cap
                                  # Raising a cap is a deliberate edit; no skill offers it.
 policy: "{{policy}}"             # the AI-use policy, verbatim as the author gave it
-word_limit: {{word_limit}}       # null if none
-word_count_excludes: [bibliography, footnotes]   # what doesn't count
+word_limit: {{word_limit}}       # (hook-read) null if none
+page_limit: {{page_limit}}       # (hook-read) null if none
+word_count_excludes: [bibliography, footnotes]   # what doesn't count (also in the page estimate)
+words_per_page: null             # page estimate; null → derived from page_format,
+                                 # else studio.yaml style.words_per_page, else 250
+page_format:                     # the brief's page format, for the estimate only;
+  fontsize: {{fontsize}}         # pt (e.g. 12); null if not given
+  linestretch: {{linestretch}}   # 1 single, 1.5, 2 double; null if not given
 status: brief                    # brief | draft | revision | complete
 citation_style: null             # CSL style id; null → studio.yaml style.citation_style
 template: null                   # LaTeX template for /publish; null → template.tex here, then publish.template

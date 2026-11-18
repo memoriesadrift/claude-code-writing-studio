@@ -200,7 +200,12 @@ assessed: true           # true → integrity rules apply (§5.4)
 assessed_cap: null       # cap for this work; null → integrity.assessed_cap
 policy: "Category B: AI permitted for planning and feedback only; acknowledge use"
 word_limit: 2500
+page_limit: null         # pages, when the brief sets them; either limit, or both
 word_count_excludes: [bibliography, footnotes]   # what doesn't count
+words_per_page: null     # page estimate; null → from page_format, else style.words_per_page, else 250
+page_format:             # the brief's format, for the estimate only (the PDF's comes from the template)
+  fontsize: 12
+  linestretch: 1.5
 status: draft            # brief | draft | revision | complete
 citation_style: null     # null → project default
 template: null           # LaTeX template for /publish; null → publish.template
@@ -211,6 +216,19 @@ language_options: {}     # overrides project language.options for this work
 Prose levels are not set here: all prose-level choices live in one place,
 `studio.yaml` → `prose` (§5.1). `assessed` and `assessed_cap` are read from
 here to apply the integrity cap; the cap is a ceiling, not a level.
+
+**Page counts** (added after v1). `/status` estimates pages from the counted
+words (same exclusions) at a words-per-page figure: the work's
+`words_per_page`; else derived from `page_format` (at 12pt, 500 single-spaced
+to 250 double-spaced, linear between, scaled by (12/fontsize)²; a missing
+fontsize is 12, a missing linestretch 2); else `studio.yaml`
+`style.words_per_page`; else 250. `/publish` records the real page count of
+each PDF in `out/<target>.pages` (from TeX's log), and `/status` reports it,
+`stale` once a source has changed since. A page limit is checked against the
+fresh PDF count, else the estimate. The PDF count is the whole document, and
+it matches a brief only if the LaTeX template does. Fiction gets page totals,
+no limit. `page_limit` is hook-read (the session-start status line shows
+`~pages/limit`).
 
 ### 4.3 Rigour
 

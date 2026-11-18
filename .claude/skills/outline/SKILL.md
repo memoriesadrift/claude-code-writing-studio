@@ -48,7 +48,7 @@ template; propose from what they have said and written, and let them correct.
     outline follows the draft, not the other way round).
   - **Non-fiction:** `works/<work>/brief.md` (assignment, marking criteria,
     research question in force and its version `vN`), `work.yaml`
-    (`word_limit`, `word_count_excludes`, `kind`), `compendium/claims.yaml`,
+    (`word_limit`, `page_limit`, `word_count_excludes`, `kind`), `compendium/claims.yaml`,
     the source notes in `compendium/sources/` (status and *Quotations*),
     `compendium/positions/`, any existing `outline.md` and
     `works/<work>/sections/`.
@@ -136,7 +136,10 @@ Template `.claude/templates/nonfiction/outline.md`.
    in force now), the section's claim in one sentence, its role (introduce,
    define, argue, object, reply, conclude), and target words. The targets add
    up to the `word_limit` less a margin (say what you assumed, and which
-   `word_count_excludes` apply). Show it whole; on approval, **"May I write
+   `word_count_excludes` apply). With only a `page_limit`, the budget is the
+   pages times the words per page `status.sh <work>` reports on its
+   `pages:` line, less a margin for what the PDF adds (title page,
+   bibliography); with both, the tighter of the two. Targets stay in words. Show it whole; on approval, **"May I write
    this to `works/<work>/outline.md`?"**
 3. **Critique** (below), once.
 4. **Claims and sources**, one section at a time:

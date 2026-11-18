@@ -20,7 +20,7 @@ This file's path, the target path(s) and the persona word if one was given
   author says they write for: what moves them, what they want to feel;
   non-fiction: an informed reader in `project.field`)
 - `marker` only: `works/<work>/brief.md` (assignment and marking criteria,
-  verbatim) and `work.yaml` (word limit)
+  verbatim) and `work.yaml` (word and page limits)
 
 The persona never reads the bible, outline or compendium; reactions come from
 the page.

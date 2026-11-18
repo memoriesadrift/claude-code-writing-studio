@@ -7,7 +7,9 @@
 # Hooks read only the flat "hook-read subset" of YAML (spec §10.1):
 #   studio.yaml   prose.level, prose.overrides (one `key: level` per line),
 #                 integrity.assessed_cap, project.form, language.default
-#   work.yaml     assessed, assessed_cap, word_limit
+#   work.yaml     assessed, assessed_cap, word_limit, page_limit
+#                 (and, for the page estimate only, words_per_page and the
+#                 page_format block's fontsize and linestretch)
 #   frontmatter   locked; source notes: status, archive.kind, archive.held
 
 WS_LEVELS="critic coach editor co-author ghostwriter"
@@ -153,9 +155,9 @@ ws_classify() {
 
 # Load studio.yaml's hook-read keys. Sets WS_HAVE_STUDIO (0/1), WS_BASE_LEVEL,
 # WS_PROJECT_CAP, WS_OVERRIDES (newline-separated `key<TAB>level`), WS_FORM,
-# WS_LANG.
+# WS_LANG, WS_STYLE_WPP (style.words_per_page).
 ws_load_studio() {
-  WS_HAVE_STUDIO=0 WS_BASE_LEVEL="" WS_PROJECT_CAP="" WS_OVERRIDES="" WS_FORM="" WS_LANG=""
+  WS_HAVE_STUDIO=0 WS_BASE_LEVEL="" WS_PROJECT_CAP="" WS_OVERRIDES="" WS_FORM="" WS_LANG="" WS_STYLE_WPP=""
   [ -f "$WS_ROOT/studio.yaml" ] || return 0
   WS_HAVE_STUDIO=1
   local t a b
@@ -165,6 +167,7 @@ ws_load_studio() {
       c) WS_PROJECT_CAP=$a ;;
       f) WS_FORM=$a ;;
       g) WS_LANG=$a ;;
+      p) WS_STYLE_WPP=$a ;;
       o) WS_OVERRIDES+="$a"$'\t'"$b"$'\n' ;;
     esac
   done < <(awk '
@@ -189,17 +192,23 @@ ws_load_studio() {
     top == "integrity" && k == "assessed_cap" { print "c\t" v; next }
     top == "project" && k == "form" && ind <= 2 { print "f\t" v; next }
     top == "language" && k == "default" && ind <= 2 { print "g\t" v; next }
+    top == "style" && k == "words_per_page" && ind <= 2 { print "p\t" v; next }
   ' "$WS_ROOT/studio.yaml")
 }
 
-# Read works/<work>/work.yaml's `assessed`, `assessed_cap` and `word_limit`
-# into WS_W_ASSESSED, WS_W_CAP, WS_W_LIMIT.
+# Read works/<work>/work.yaml's `assessed`, `assessed_cap`, `word_limit` and
+# `page_limit` into WS_W_ASSESSED, WS_W_CAP, WS_W_LIMIT, WS_W_PLIMIT; also the
+# page-estimate keys `words_per_page` and `page_format` (`fontsize`,
+# `linestretch`) into WS_W_WPP, WS_W_FS, WS_W_LS.
 ws_load_work() {
-  WS_W_ASSESSED="" WS_W_CAP="" WS_W_LIMIT=""
+  WS_W_ASSESSED="" WS_W_CAP="" WS_W_LIMIT="" WS_W_PLIMIT="" WS_W_WPP="" WS_W_FS="" WS_W_LS=""
   local f="$WS_ROOT/works/$1/work.yaml" t a
   [ -f "$f" ] || return 0
   while IFS=$'\t' read -r t a; do
-    case $t in a) WS_W_ASSESSED=$a ;; c) WS_W_CAP=$a ;; w) WS_W_LIMIT=$a ;; esac
+    case $t in
+      a) WS_W_ASSESSED=$a ;; c) WS_W_CAP=$a ;; w) WS_W_LIMIT=$a ;; p) WS_W_PLIMIT=$a ;;
+      r) WS_W_WPP=$a ;; s) WS_W_FS=$a ;; l) WS_W_LS=$a ;;
+    esac
   done < <(awk '
     function val(s) {
       sub(/[ \t]+#.*$/, "", s); sub(/^[ \t]+/, "", s); sub(/[ \t]+$/, "", s)
@@ -207,10 +216,57 @@ ws_load_work() {
       return s
     }
     { sub(/\r$/, "") }
+    /^[^ \t#]/ { inpf = 0 }
     /^assessed:/     { v = $0; sub(/^assessed:/, "", v); print "a\t" val(v) }
     /^assessed_cap:/ { v = $0; sub(/^assessed_cap:/, "", v); print "c\t" val(v) }
     /^word_limit:/   { v = $0; sub(/^word_limit:/, "", v); print "w\t" val(v) }
+    /^page_limit:/   { v = $0; sub(/^page_limit:/, "", v); print "p\t" val(v) }
+    /^words_per_page:/ { v = $0; sub(/^words_per_page:/, "", v); print "r\t" val(v) }
+    /^page_format:/  { inpf = 1; next }
+    inpf && /^[ \t]+fontsize:/    { v = $0; sub(/^[ \t]+fontsize:/, "", v); print "s\t" val(v) }
+    inpf && /^[ \t]+linestretch:/ { v = $0; sub(/^[ \t]+linestretch:/, "", v); print "l\t" val(v) }
   ' "$f")
+}
+
+# Words per page for the page estimate, into WS_WPP (a whole number) and
+# WS_WPP_SRC (where it came from). After ws_load_work for a work (or with the
+# WS_W_* page keys empty, for fiction) and ws_load_studio. Order: the work's
+# words_per_page; derived from its page_format; studio.yaml
+# style.words_per_page; 250, the standard manuscript page.
+#
+# Derivation: at 12pt, 500 words single-spaced, 250 double-spaced, linear in
+# between (1.5 → 375), 500/linestretch above 2; scaled by (12/fontsize)^2 and
+# rounded to 5. A missing fontsize is 12, a missing linestretch 2 (the
+# conservative guess: fewer words per page, so more pages). Margins and fonts
+# are ignored: it is an estimate.
+ws_words_per_page() {
+  local n
+  for n in WS_W_WPP WS_W_FS WS_W_LS WS_STYLE_WPP; do
+    case ${!n:-} in null|'~') eval "$n=''" ;; esac
+  done
+  case ${WS_W_WPP:-} in
+    ''|*[!0-9]*|0) ;;
+    *) WS_WPP=$WS_W_WPP WS_WPP_SRC="words_per_page"; return 0 ;;
+  esac
+  if [ -n "${WS_W_FS:-}" ] || [ -n "${WS_W_LS:-}" ]; then
+    WS_WPP=$(LC_ALL=C awk -v fs="${WS_W_FS:-12}" -v ls="${WS_W_LS:-2}" 'BEGIN {
+      fs += 0; ls += 0; if (fs <= 0) fs = 12; if (ls <= 0) ls = 2
+      b = (ls >= 1 && ls <= 2) ? 500 - 250 * (ls - 1) : 500 / ls
+      w = b * (12 / fs) * (12 / fs); printf "%d", int(w / 5 + 0.5) * 5 }')
+    WS_WPP_SRC="page_format: ${WS_W_FS:-12}pt; line spacing ${WS_W_LS:-2}"
+    [ -n "${WS_W_FS:-}" ] || WS_WPP_SRC+=", 12pt assumed"
+    [ -n "${WS_W_LS:-}" ] || WS_WPP_SRC+=", double spacing assumed"
+    [ "$WS_WPP" -gt 0 ] 2>/dev/null && return 0
+  fi
+  case ${WS_STYLE_WPP:-} in
+    ''|*[!0-9]*|0) WS_WPP=250 WS_WPP_SRC="default" ;;
+    *) WS_WPP=$WS_STYLE_WPP WS_WPP_SRC="style.words_per_page" ;;
+  esac
+}
+
+# Estimated pages for $1 words at WS_WPP, one decimal, into WS_PAGES.
+ws_pages() {
+  WS_PAGES=$(LC_ALL=C awk -v w="$1" -v p="$WS_WPP" 'BEGIN { printf "%.1f", (p > 0 ? w / p : 0) }')
 }
 
 # ---------------------------------------------------------------- levels

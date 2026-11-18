@@ -22,6 +22,7 @@ outline sections record the version they were written under.
 
 ## Constraints
 - **Word limit:** {{word_limit}} (excluding {{word_count_excludes}})
+- **Page limit:** {{page_limit}}{{ — page format as the brief states it: font, size, spacing, margins; what counts}}
 - **Citation style:** {{citation_style}}
 - **Assessed:** {{yes/no}}{{; policy recorded in work.yaml}}
 - **Other:** {{format, required sources, deadline-free notes}}

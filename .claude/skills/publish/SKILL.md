@@ -105,6 +105,8 @@ minutes). It prints facts in blocks:
 - `## settings` — title, author, lang, template, CSL style (and its parent
   for a dependent style), engine.
 - `## pandoc`, `## compile` — `output:` lines, or `error:` with `log:` lines.
+  A PDF build adds `pages: N` (recorded in `out/<target>.pages` for
+  `/status`).
 
 **Exit 3 — `need:` lines:**
 
@@ -147,7 +149,10 @@ line and let the author fix it.
 
 ## 6. Done
 
-Report the output path(s), the order used, the style and language, and any
+Report the output path(s), the page count (non-fiction: against
+`page_limit` if the work has one; the count is the whole PDF, and it
+matches the brief's format only if the template does), the order used, the
+style and language, and any
 `missing:` / `unlisted:` lines and citation errors that still stand. The
 PDF's bibliography has no heading unless the template or the last section
 supplies one (`# References` / `# Literatur` at the end of the last section,
